@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# secrets (execute.py가 git add -A로 커밋하므로 필수)
+.env*
+!.env.example
+
+# phase execution outputs
+phases/**/phase*-output.json
+phases/**/step*-output.json
+
+# caches (execute.py가 작업 폴더가 깨끗해야 실행되므로 필수)
+__pycache__/
+.DS_Store

@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && [ -f package.json ] || exit 0; grep -qE '\"stop_hook_active\": ?true' && exit 0; OUT=$(npm run lint 2>&1 && npm run build 2>&1 && npm run test 2>&1) || { echo \"$OUT\" >&2; exit 2; }"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if grep -qiE 'rm\\s+-[a-z]*(r[a-z]*f|f[a-z]*r)|git\\s+push(\\s.*)?\\s(-f|--force)|git\\s+reset\\s+--hard|git\\s+clean\\s+-[a-z]*f|drop\\s+table'; then echo 'BLOCKED: 위험한 명령어가 감지되었습니다.' >&2; exit 2; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/tdd-guard.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
