@@ -8,6 +8,14 @@ tsconfig.tsbuildinfo
 .env*
 !.env.example
 
+# test / deploy / supabase CLI outputs (execute.py가 git add -A로 커밋하므로 필수)
+coverage/
+playwright-report/
+test-results/
+.vercel/
+supabase/.temp/
+supabase/.branches/
+
 # phase execution outputs
 phases/**/phase*-output.json
 phases/**/step*-output.json
