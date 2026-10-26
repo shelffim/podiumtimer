@@ -1,9 +1,10 @@
 # UI 디자인 가이드
 
 ## 디자인 원칙
-1. {원칙 1 — 예: "도구처럼 보여야 한다. 마케팅 페이지가 아니라 매일 쓰는 대시보드."}
-2. {원칙 2}
-3. {원칙 3}
+1. **무대에서 한눈에 읽힌다.** 타이머 화면의 주인공은 숫자 하나(현재 구간 남은 시간)다. 단상에 둔 폰을 1m 떨어져서 봐도 읽혀야 한다.
+2. **색은 의미가 있을 때만 쓴다.** 늦음 빨강, 빠름 파랑, 그 외는 전부 무채색. 색이 보이면 페이스에 관한 정보다.
+3. **도구처럼 보인다.** 마케팅 문구, 일러스트, 장식이 없다. 시작 화면도 소개 한 줄과 로그인 버튼뿐이다.
+4. **폰이 기준이다.** 360px 너비에서 먼저 맞추고, 노트북에서는 같은 화면이 넓어질 뿐이다.
 
 ## AI 슬롭 안티패턴 — 하지 마라
 | 금지 사항 | 이유 |
@@ -15,62 +16,115 @@
 | 보라/인디고 브랜드 색상 | "AI = 보라색" 클리셰 |
 | 모든 카드에 동일한 rounded-2xl | 균일한 둥근 모서리는 템플릿 느낌 |
 | 배경 gradient orb (blur-3xl 원형) | 모든 AI 랜딩 페이지에 있는 장식 |
+| 빠름에 초록색 | 빨리 끝난 게 "잘했다"는 뜻이 아니다. 서둘렀다는 뜻일 수도 있다 |
+| 타이머 숫자에 비례폭 숫자 | 초가 바뀔 때마다 글자 폭이 달라져 화면이 흔들린다 |
+| 타이머 화면의 깜빡임·펄스·진행 애니메이션 | 발표자 시선을 뺏는다 |
+| 라이트 모드 전환 버튼 | 다크 고정 |
 
 ## 색상
 ### 배경
 | 용도 | 값 |
 |------|------|
-| 페이지 | {예: #0a0a0a} |
-| 카드 | {예: #141414} |
+| 페이지 | `#0a0a0a` |
+| 카드 | `#141414` |
+| 테두리 | `border-neutral-800` |
 
 ### 텍스트
 | 용도 | 값 |
 |------|------|
-| 주 텍스트 | {예: text-white} |
-| 본문 | {예: text-neutral-300} |
-| 보조 | {예: text-neutral-400} |
-| 비활성 | {예: text-neutral-500} |
+| 주 텍스트, 타이머 숫자 | `text-white` |
+| 본문 | `text-neutral-300` |
+| 보조 (다음 구간, 라벨) | `text-neutral-400` |
+| 비활성 | `text-neutral-500` |
 
 ### 데이터/시맨틱 색상
 | 용도 | 값 |
 |------|------|
-| {긍정/성공} | {예: #22c55e} |
-| {부정/에러} | {예: #ef4444} |
-| {중립/기본} | {예: #525252} |
+| 늦음 (구간 차이 > +1초, 남은 시간 마이너스) | `#f87171` (`text-red-400`) |
+| 빠름 (구간 차이 < −1초) | `#60a5fa` (`text-blue-400`) |
+| 정시 (차이 ±1초 이내) | `text-neutral-300` |
+| 에러 메시지 | `#f87171` (`text-red-400`) |
 
 ## 컴포넌트
-### 카드
+### 카드 (타이머 목록, 기록)
 ```
-{예: rounded-lg bg-[#141414] border border-neutral-800 p-6}
+rounded-lg bg-[#141414] border border-neutral-800 p-4
 ```
 
 ### 버튼
 ```
-Primary: {예: rounded-lg bg-white text-black hover:bg-neutral-200}
-Text:    {예: text-neutral-500 hover:text-neutral-300}
+Primary:   rounded-md bg-white text-black font-medium px-4 py-3 hover:bg-neutral-200
+Secondary: rounded-md border border-neutral-700 text-neutral-200 px-4 py-3 hover:bg-neutral-900
+Text:      text-neutral-400 hover:text-neutral-200
+Danger:    text-red-400 hover:text-red-300   (삭제, 중단)
 ```
+- 터치 영역은 최소 44px 높이.
+- 라벨은 한국어 텍스트. 아이콘만 있는 버튼을 만들지 않는다(되돌리기·중단도 글자로).
 
 ### 입력 필드
 ```
-{예: rounded-lg bg-neutral-900 border border-neutral-800 px-4 py-3}
+rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-white focus:border-neutral-500 focus:outline-none
 ```
+- 구간 시간은 "분"과 "초" 숫자 입력 두 칸(`inputmode="numeric"`).
+
+### 안내 (한도 도달, 결제 확인 중, 연결 끊김)
+```
+rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300
+```
+- 모달 대신 화면 안의 안내 박스. 삭제·중단 확인만 브라우저 기본 `confirm()`을 쓴다.
+
+### 평균 차이 막대그래프
+- 차트 라이브러리 없이 `div` 너비(%)로 그린다.
+- 가운데 세로 기준선. 늦음은 오른쪽으로 빨강, 빠름은 왼쪽으로 파랑, 정시는 막대 없음.
+- 막대 길이는 가장 큰 |평균 차이|를 100%로 맞춘다. 줄마다 구간 이름과 차이 값("0:12 늦음")을 적는다.
 
 ## 레이아웃
-- 전체 너비: {예: max-w-5xl}
-- 정렬: {예: 좌측 정렬 기본. 중앙 정렬 금지}
-- 간격: {예: gap-3~4, 섹션 간 space-y-8}
+- 일반 화면: 한 열, `max-w-xl mx-auto px-4`, 텍스트는 좌측 정렬, 섹션 간 `space-y-6`.
+- 하단 푸터: 모든 화면에 `개인정보처리방침 · 이용약관 · 문의 이메일`, `text-xs text-neutral-500`.
+- 타이머 실행·공유 시청 화면은 전체 화면(`min-h-dvh`)을 쓰고 숫자를 가운데 정렬한다.
+
+### 타이머 진행 화면 배치 (위 → 아래)
+```
+┌──────────────────────────────────┐
+│ 되돌리기      3 / 7       중단  │ ← 상단 바: 탭해도 "다음" 아님
+│               3명 보는 중        │ ← 공유 중일 때만, 발표자 화면만
+│                                  │
+│           찬성 입론              │ ← 현재 구간 이름
+│                                  │
+│            1:42                  │ ← 현재 구간 남은 시간 (가장 크게)
+│                                  │
+│        전체 8:30 남음            │ ← 전체 남은 시간 (중간)
+│                                  │
+│      직전 구간 0:12 늦음         │ ← 직전 결과 (작게, 의미 색)
+│        다음: 반대 입론           │ ← 다음 구간 (작게, 보조색)
+└──────────────────────────────────┘
+  상단 바 아래 전체가 "다음" 탭 영역
+```
+- 현재 구간 남은 시간이 0을 지나면 숫자 전체가 빨강 "-0:05"로 바뀐다.
+- 시청자 화면은 같은 배치에서 상단 바의 버튼과 시청자 수를 빼고, 연결이 끊기면 오른쪽 위에 "연결 끊김"을 작게 표시한다.
+- 시작 전: 타이머 이름, 구간 목록(이름·시간), 전체 시간, "시작"(Primary, 넓게), "공유 링크 만들기"(Secondary).
+- 종료 후: 구간별 계획 / 실제 / 차이 표. 차이 칸만 의미 색.
 
 ## 타이포그래피
+글꼴은 시스템 글꼴 스택(추가 웹폰트 없음). 시간 숫자는 전부 `tabular-nums`.
+
 | 용도 | 스타일 |
 |------|--------|
-| 페이지 제목 | {예: text-4xl font-semibold text-white} |
-| 카드 제목 | {예: text-sm font-medium text-neutral-400} |
-| 본문 | {예: text-sm text-neutral-300 leading-relaxed} |
+| 현재 구간 남은 시간 | `text-[clamp(5rem,28vw,12rem)] font-semibold tabular-nums leading-none` |
+| 전체 남은 시간 | `text-3xl font-medium tabular-nums text-neutral-300` |
+| 현재 구간 이름 | `text-xl font-medium text-white` |
+| 직전 결과, 다음 구간 | `text-base` |
+| 페이지 제목 | `text-2xl font-semibold text-white` |
+| 카드 제목 | `text-base font-medium text-white` |
+| 본문 | `text-sm text-neutral-300 leading-relaxed` |
+| 라벨·보조 | `text-xs text-neutral-400` |
+
+시간 표기: `m:ss`(예: `1:42`, `12:05`, `-0:05`). 구간 차이는 `0:12 늦음`, `0:08 빠름`, `정시`.
 
 ## 애니메이션
-- {허용할 애니메이션만 나열. 예: fade-in (0.4s), slide-up (0.5s)}
-- {그 외 모든 애니메이션 금지}
+- 버튼 hover/active 색 전환(`transition-colors`, 150ms)만 허용한다.
+- 그 외 모든 애니메이션 금지. 특히 타이머·공유 시청 화면에는 숫자 바뀜 외에 움직이는 것이 없다.
 
 ## 아이콘
-- {예: SVG 인라인, strokeWidth 1.5}
-- {예: 아이콘 컨테이너(둥근 배경 박스)로 감싸지 않는다}
+- 쓰지 않는 것이 기본이다. 필요하면 SVG 인라인, `strokeWidth` 1.5.
+- 아이콘 컨테이너(둥근 배경 박스)로 감싸지 않는다.
