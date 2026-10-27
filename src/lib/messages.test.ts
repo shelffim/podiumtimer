@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
-import { LIMITS } from "./billing";
+import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
 import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel, viewerFullLabel, recordDateLabel, recordsTitle } from "./messages";
 
 describe("messages", () => {
+  it("provides billing screen copy from shared product constants", () => {
+    expect(MESSAGES.pricing.price).toBe(`$${PASS_PRICE_USD}`);
+    expect(MESSAGES.pricing.duration).toBe(`${PASS_DAYS}일 · 자동 갱신 없음`);
+    expect(MESSAGES.pricing.mockBuy).toBe(`가짜 결제 ($${PASS_PRICE_USD})`);
+    expect(MESSAGES.pricing.buy).toBe(`30일권 구매 $${PASS_PRICE_USD}`);
+    expect(MESSAGES.pricing.extension).toBe(`지금 사면 만료일에 ${PASS_DAYS}일이 더해져요`);
+    expect(MESSAGES.billingSuccess).toEqual({ pending: "30일권 반영 중", delayed: "결제는 완료됐어요, 반영이 늦어지고 있어요", backToTimers: "타이머 목록으로" });
+  });
   it("formats records titles and Korean start dates with a padded 24-hour clock", () => {
     expect(recordsTitle("수업 발표")).toBe("수업 발표 기록");
     expect(recordDateLabel(Date.UTC(2026, 9, 26, 5, 5))).toBe("10월 26일 (월) 14:05");
