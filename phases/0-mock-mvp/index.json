@@ -85,7 +85,10 @@
     {
       "step": 10,
       "name": "viewer-screen",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-28T00:49:44+0900",
+      "summary": "/s/[code] 동적 페이지와 useShareViewer·ViewerScreen을 TDD로 구현하고 닉네임 자동 재입장, 대기·진행·결과·중단, 단일 조회·신호 묶음·10초 재조회·지수 재시도, Presence 입장 판정·인원 초과 퇴장·정리를 검증했어요. 신규 31개 포함 전체 테스트 427개, lint, 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:54:44+0900"
     },
     {
       "step": 11,
