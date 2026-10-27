@@ -101,7 +101,10 @@
     {
       "step": 12,
       "name": "billing-screens",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-28T00:58:38+0900",
+      "summary": "/pricing·/billing/success 페이지와 PricingView·BillingSuccess를 TDD로 구현하고 플랜 비교·가짜 결제/연장·안전한 복귀 경로·읽기 전용 최대 10회 확인·지연 안내/타이머 정리를 검증했어요. 신규 25개 포함 전체 테스트 468개, lint, 환경변수와 .env 없는 build 및 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T01:02:23+0900"
     },
     {
       "step": 13,
