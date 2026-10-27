@@ -90,6 +90,16 @@ export const MESSAGES = {
     actual: "실제",
     difference: "차이",
   },
+  records: {
+    average: "구간별 평균",
+    averageActual: "평균 실제",
+    averageDifference: "평균 차이",
+    averageChart: "평균 차이 막대그래프",
+    empty: "아직 기록이 없어요",
+    emptyDescription: "마지막 구간까지 끝낸 발표가 여기에 쌓여요",
+    delete: "삭제",
+    deleteConfirm: "기록을 삭제할까요?",
+  },
   appError: {
     title: "문제가 생겼어요",
     retry: "다시 시도",
@@ -250,4 +260,17 @@ export function seatLabel(used: number, cap: number): string {
 
 export function viewerFullLabel(cap: number): string {
   return `인원이 가득 찼어요 (${cap}/${cap})`;
+}
+
+export function recordsTitle(timerName: string): string {
+  return `${timerName} ${MESSAGES.timers.records}`;
+}
+
+export function recordDateLabel(startedAt: number): string {
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    month: "long", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit",
+    hourCycle: "h23", timeZone: "Asia/Seoul",
+  }).formatToParts(startedAt);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value ?? "";
+  return `${part("month")} ${part("day")}일 (${part("weekday")}) ${part("hour")}:${part("minute")}`;
 }

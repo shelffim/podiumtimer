@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel, viewerFullLabel } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel, viewerFullLabel, recordDateLabel, recordsTitle } from "./messages";
 
 describe("messages", () => {
+  it("formats records titles and Korean start dates with a padded 24-hour clock", () => {
+    expect(recordsTitle("수업 발표")).toBe("수업 발표 기록");
+    expect(recordDateLabel(Date.UTC(2026, 9, 26, 5, 5))).toBe("10월 26일 (월) 14:05");
+    expect(recordDateLabel(Date.UTC(2026, 9, 26, 15, 5))).toBe("10월 27일 (화) 00:05");
+  });
   it("provides viewer copy and capacity labels", () => {
     expect(MESSAGES.viewer).toEqual({ nickname: "닉네임", enter: "입장", waiting: "발표자가 시작하면 자동으로 시작돼요", notFound: "존재하지 않는 링크예요", aborted: "발표가 중단되었어요", disconnected: "연결 끊김" });
     expect(viewerFullLabel(3)).toBe("인원이 가득 찼어요 (3/3)");
