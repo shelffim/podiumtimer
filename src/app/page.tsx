@@ -1,7 +1,16 @@
-export default function HomePage() {
+import { Landing } from "@/components/Landing";
+import { PageShell } from "@/components/PageShell";
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+
   return (
-    <main className="mx-auto max-w-xl px-4 py-8">
-      <h1 className="text-2xl font-semibold text-neutral-50">Podium Timer</h1>
-    </main>
+    <PageShell>
+      <Landing next={typeof next === "string" ? next : undefined} />
+    </PageShell>
   );
 }

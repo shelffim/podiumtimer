@@ -4,6 +4,34 @@ import { LIMITS } from "./billing";
 import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord } from "./messages";
 
 describe("messages", () => {
+  it("provides the app shell copy and structured policy drafts", () => {
+    expect(MESSAGES.serviceName).toBe("Podium Timer");
+    expect(MESSAGES.mockBadge).toBe("MOCK 모드 · 데이터는 이 브라우저에만 저장돼요");
+    for (const policy of [MESSAGES.terms, MESSAGES.privacy]) {
+      expect(policy.title).toMatch(/[가-힣]/u);
+      expect(policy.sections.length).toBeGreaterThan(0);
+      for (const section of policy.sections) {
+        expect(section.title).toMatch(/[가-힣]/u);
+        expect(section.paragraphs.length).toBeGreaterThan(0);
+        expect(section.paragraphs.every((text) => /[가-힣]/u.test(text) && !text.includes("@"))).toBe(true);
+      }
+    }
+  });
+
+  it("explains sandbox billing, extension and email requests in the terms", () => {
+    const text = MESSAGES.terms.sections.flatMap((section) => section.paragraphs).join(" ");
+    for (const phrase of ["만 14세", "Google", "$3.99", "자동 갱신", "만료일", "Polar", "테스트 결제", "실제로 청구되지 않아요", "환불", "탈퇴", "하단 문의 이메일", "데이터가 사라질 수 있어요"]) {
+      expect(text).toContain(phrase);
+    }
+  });
+
+  it("explains stored data, viewer presence, processors and deletion in privacy", () => {
+    const text = MESSAGES.privacy.sections.flatMap((section) => section.paragraphs).join(" ");
+    for (const phrase of ["이메일", "이름", "식별자", "타이머", "기록", "주문 ID", "결제 시각", "닉네임", "접속 표시", "실행 상태", "기기 식별값", "Supabase", "Vercel", "Polar", "탈퇴", "삭제", "하단 문의 이메일"]) {
+      expect(text).toContain(phrase);
+    }
+  });
+
   it("covers every error code with Korean copy", () => {
     const expected: Record<ErrorCode, string> = {
       UNAUTHENTICATED: "로그인이 필요해요",
