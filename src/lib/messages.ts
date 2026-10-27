@@ -17,6 +17,38 @@ export const MESSAGES = {
     minimumAge: "만 14세 이상 이용할 수 있어요",
     signInFailed: "로그인하지 못했어요. 다시 시도해 주세요",
   },
+  timers: {
+    title: "내 타이머",
+    free: "무료",
+    pass: "30일권",
+    buyPass: "30일권 구매",
+    viewPass: "30일권 보기",
+    signOut: "로그아웃",
+    newTimer: "새 타이머",
+    firstTimer: "첫 타이머 만들기",
+    start: "시작",
+    edit: "편집",
+    records: "기록",
+    loading: "불러오고 있어요",
+    createTitle: "타이머 만들기",
+    editTitle: "타이머 편집",
+    timerName: "타이머 이름",
+    segments: "구간",
+    segmentName: "이름",
+    segmentClock: "시간",
+    clockPlaceholder: "3:00",
+    moveUp: "위로",
+    moveDown: "아래로",
+    removeSegment: "삭제",
+    addSegment: "구간 추가",
+    save: "저장",
+    saved: "저장했어요",
+    rehearse: "바로 리허설 해보기",
+    deleteTimer: "타이머 삭제",
+    deleteConfirm: "타이머를 삭제할까요? 기록과 공유 링크도 함께 지워져요",
+    notFound: "타이머를 찾을 수 없어요",
+    backToList: "목록으로",
+  },
   appError: {
     title: "문제가 생겼어요",
     retry: "다시 시도",
@@ -138,4 +170,23 @@ export function diffLabel(diffMs: number): string {
 
 export function verdictWord(verdict: Verdict): string {
   return MESSAGES.verdicts[verdict];
+}
+
+export function planLabel(plan: Plan, expiresAt: number | null): string {
+  if (plan === "free") return MESSAGES.timers.free;
+  if (expiresAt === null) return MESSAGES.timers.pass;
+  const date = new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", timeZone: "Asia/Seoul" }).format(expiresAt);
+  return `${MESSAGES.timers.pass} · ${date}까지`;
+}
+
+export function timerSummary(segmentCount: number, plannedMs: number): string {
+  return `구간 ${segmentCount}개 · ${totalTimeLabel(plannedMs)}`;
+}
+
+export function totalTimeLabel(plannedMs: number): string {
+  return `전체 ${formatDuration(plannedMs)}`;
+}
+
+export function segmentFieldLabel(index: number, field: "name" | "clock"): string {
+  return `구간 ${index + 1} ${field === "name" ? MESSAGES.timers.segmentName : MESSAGES.timers.segmentClock}`;
 }

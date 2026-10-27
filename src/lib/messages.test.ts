@@ -1,9 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel } from "./messages";
 
 describe("messages", () => {
+  it("formats timer screen labels and Korean pass expiry dates", () => {
+    expect(planLabel("free", null)).toBe("무료");
+    expect(planLabel("pass", Date.UTC(2026, 10, 24, 15))).toBe("30일권 · 11월 25일까지");
+    expect(timerSummary(2, 125_000)).toBe("구간 2개 · 전체 2:05");
+    expect(totalTimeLabel(125_000)).toBe("전체 2:05");
+    expect(segmentFieldLabel(0, "name")).toBe("구간 1 이름");
+    expect(segmentFieldLabel(1, "clock")).toBe("구간 2 시간");
+  });
+
   it("provides the app shell copy and structured policy drafts", () => {
     expect(MESSAGES.serviceName).toBe("Podium Timer");
     expect(MESSAGES.mockBadge).toBe("MOCK 모드 · 데이터는 이 브라우저에만 저장돼요");
