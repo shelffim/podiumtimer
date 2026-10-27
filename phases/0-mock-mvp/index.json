@@ -2,19 +2,79 @@
   "project": "Podium Timer",
   "phase": "0-mock-mvp",
   "steps": [
-    { "step": 0, "name": "project-setup", "status": "pending" },
-    { "step": 1, "name": "timer-core", "status": "pending" },
-    { "step": 2, "name": "lib-rules", "status": "pending" },
-    { "step": 3, "name": "api-mock", "status": "pending" },
-    { "step": 4, "name": "realtime-mock", "status": "pending" },
-    { "step": 5, "name": "app-shell", "status": "pending" },
-    { "step": 6, "name": "timers-screens", "status": "pending" },
-    { "step": 7, "name": "timer-face", "status": "pending" },
-    { "step": 8, "name": "run-screen", "status": "pending" },
-    { "step": 9, "name": "share-host", "status": "pending" },
-    { "step": 10, "name": "viewer-screen", "status": "pending" },
-    { "step": 11, "name": "records-screen", "status": "pending" },
-    { "step": 12, "name": "billing-screens", "status": "pending" },
-    { "step": 13, "name": "deploy-mock", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "project-setup",
+      "status": "completed",
+      "summary": "Next.js 16.4.3 App Router 최소 앱과 Tailwind CSS 4.3.3·zod 4.6.7·Vitest 5.0.5 설정, ESLint 9.39.5(eslint .), Vercel CLI 65.4.0 고정 및 환경변수 없는 빌드를 포함한 AC 검증을 완료했어요.",
+      "started_at": "2026-10-28T00:07:24+0900",
+      "completed_at": "2026-10-28T00:12:06+0900"
+    },
+    {
+      "step": 1,
+      "name": "timer-core",
+      "status": "pending"
+    },
+    {
+      "step": 2,
+      "name": "lib-rules",
+      "status": "pending"
+    },
+    {
+      "step": 3,
+      "name": "api-mock",
+      "status": "pending"
+    },
+    {
+      "step": 4,
+      "name": "realtime-mock",
+      "status": "pending"
+    },
+    {
+      "step": 5,
+      "name": "app-shell",
+      "status": "pending"
+    },
+    {
+      "step": 6,
+      "name": "timers-screens",
+      "status": "pending"
+    },
+    {
+      "step": 7,
+      "name": "timer-face",
+      "status": "pending"
+    },
+    {
+      "step": 8,
+      "name": "run-screen",
+      "status": "pending"
+    },
+    {
+      "step": 9,
+      "name": "share-host",
+      "status": "pending"
+    },
+    {
+      "step": 10,
+      "name": "viewer-screen",
+      "status": "pending"
+    },
+    {
+      "step": 11,
+      "name": "records-screen",
+      "status": "pending"
+    },
+    {
+      "step": 12,
+      "name": "billing-screens",
+      "status": "pending"
+    },
+    {
+      "step": 13,
+      "name": "deploy-mock",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-10-28T00:07:24+0900"
 }
