@@ -13,7 +13,10 @@
     {
       "step": 1,
       "name": "timer-core",
-      "status": "pending"
+      "status": "completed",
+      "summary": "src/types/{timer,run,share,api}.ts와 src/lib/timer.ts·timer.test.ts를 만들고 createIdleRun·reduceRun·isStaleRun·computeTimer·buildResult·toSegmentResult·verdictOf·totalPlannedMs·formatClock·isOvertime·formatDuration 및 ON_TIME_TOLERANCE_MS·STALE_RUN_MS를 export했어요. TDD 테스트 67개, lint, 환경변수 없는 build를 통과했어요.",
+      "started_at": "2026-10-28T00:12:06+0900",
+      "completed_at": "2026-10-28T00:15:03+0900"
     },
     {
       "step": 2,
