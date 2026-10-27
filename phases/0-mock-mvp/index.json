@@ -53,7 +53,10 @@
     {
       "step": 6,
       "name": "timers-screens",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-28T00:29:57+0900",
+      "summary": "타이머 목록·만들기·편집 페이지와 TimerList·TimerEditor를 구현하고 플랜·한도 안내, 필드별 입력 오류, 구간 순서 변경·삭제, 저장 후 리허설 안내 및 삭제 확인을 추가했어요. 실제 mock API 기반 TDD 신규 25개 포함 전체 테스트 311개, lint, 프로젝트 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:35:37+0900"
     },
     {
       "step": 7,
