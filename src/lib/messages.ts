@@ -49,6 +49,18 @@ export const MESSAGES = {
     notFound: "타이머를 찾을 수 없어요",
     backToList: "목록으로",
   },
+  run: {
+    undo: "되돌리기",
+    abort: "중단",
+    abortConfirm: "발표를 중단할까요?",
+    aborted: "발표를 중단했어요",
+    restart: "다시 하기",
+    records: "기록 보기",
+    noSegments: "구간을 추가해야 시작할 수 있어요",
+    saved: "기록을 저장했어요",
+    saveFailed: "기록을 저장하지 못했어요",
+    retrySave: "다시 저장",
+  },
   timerFace: {
     finishHint: "한 번 더 누르면 종료",
     lastResult: "직전 구간",

@@ -4,6 +4,14 @@ import { LIMITS } from "./billing";
 import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel } from "./messages";
 
 describe("messages", () => {
+  it("provides the presenter run controls and persistence messages", () => {
+    expect(MESSAGES.run).toMatchObject({
+      undo: "되돌리기", abort: "중단", abortConfirm: "발표를 중단할까요?",
+      aborted: "발표를 중단했어요", restart: "다시 하기", records: "기록 보기",
+      noSegments: "구간을 추가해야 시작할 수 있어요",
+      saved: "기록을 저장했어요", saveFailed: "기록을 저장하지 못했어요", retrySave: "다시 저장",
+    });
+  });
   it("formats face labels using zero-based progress and the shared clock rounding", () => {
     expect(progressLabel(2, 7)).toBe("3 / 7");
     expect(progressLabel(0, 1)).toBe("1 / 1");
