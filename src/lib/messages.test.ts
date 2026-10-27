@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel, viewerFullLabel } from "./messages";
 
 describe("messages", () => {
+  it("provides viewer copy and capacity labels", () => {
+    expect(MESSAGES.viewer).toEqual({ nickname: "닉네임", enter: "입장", waiting: "발표자가 시작하면 자동으로 시작돼요", notFound: "존재하지 않는 링크예요", aborted: "발표가 중단되었어요", disconnected: "연결 끊김" });
+    expect(viewerFullLabel(3)).toBe("인원이 가득 찼어요 (3/3)");
+    expect(viewerFullLabel(10)).toBe("인원이 가득 찼어요 (10/10)");
+  });
   it("provides sharing labels and formats seat usage", () => {
     expect(seatLabel(2, 3)).toBe("접속 2/3");
     expect(MESSAGES.share).toMatchObject({ hostName: "발표자", create: "공유 링크 만들기", copy: "복사", copied: "복사했어요", full: "자리가 가득 찼어요", passSeats: "30일권은 10명까지", disconnected: "공유 연결 끊김" });

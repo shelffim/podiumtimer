@@ -71,6 +71,14 @@ export const MESSAGES = {
     passSeats: `30일권은 ${LIMITS.pass.seats}명까지`,
     disconnected: "공유 연결 끊김",
   },
+  viewer: {
+    nickname: "닉네임",
+    enter: "입장",
+    waiting: "발표자가 시작하면 자동으로 시작돼요",
+    notFound: "존재하지 않는 링크예요",
+    aborted: "발표가 중단되었어요",
+    disconnected: "연결 끊김",
+  },
   timerFace: {
     finishHint: "한 번 더 누르면 종료",
     lastResult: "직전 구간",
@@ -238,4 +246,8 @@ export function nextSegmentLabel(name?: string): string {
 
 export function seatLabel(used: number, cap: number): string {
   return `접속 ${used}/${cap}`;
+}
+
+export function viewerFullLabel(cap: number): string {
+  return `인원이 가득 찼어요 (${cap}/${cap})`;
 }
