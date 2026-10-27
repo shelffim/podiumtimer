@@ -109,7 +109,10 @@
     {
       "step": 13,
       "name": "deploy-mock",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-28T01:02:23+0900",
+      "summary": "Vercel 프로젝트 shelffim/podiumtimer를 npm run deploy로 mock 1차 운영 배포했어요(https://podiumtimer.vercel.app, READY, 함수 리전 icn1). lint·build·테스트 468개와 운영 HTTP 200·서버 HTML MOCK 모드·frame-ancestors none 헤더를 검증하고 .env의 NEXT_PUBLIC_SITE_URL 한 줄만 갱신했어요. 코드 수정은 없고 GitHub 자동 연결은 로그인 연결 부족으로 실패했지만 CLI 배포는 성공했어요.",
+      "completed_at": "2026-10-28T01:04:36+0900"
     }
   ],
   "created_at": "2026-10-28T00:07:24+0900"
