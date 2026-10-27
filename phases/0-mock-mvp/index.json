@@ -61,7 +61,10 @@
     {
       "step": 7,
       "name": "timer-face",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-28T00:35:38+0900",
+      "summary": "표시 전용 TimerFace(segments·view·finishHint?)·TimelineBar(segments·segmentIndex·progressMs·done?)·ResultTable(results)·SegmentList(segments)와 useNow(offsetMs·active), progressLabel 및 lib의 타임라인 표시 계산을 TDD로 구현했어요. 신규 25개 포함 전체 테스트 336개, lint, 프로젝트 환경값을 비운 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:39:33+0900"
     },
     {
       "step": 8,
