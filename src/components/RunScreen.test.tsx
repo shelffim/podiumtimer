@@ -6,11 +6,24 @@ import { api, device } from "@/services/api";
 import type { LocalRun } from "@/types/run";
 import type { Timer } from "@/types/timer";
 import { RunScreen } from "./RunScreen";
+import { joinShareChannel } from "@/services/realtime";
+import type { PresenceMember } from "@/types/share";
+
+vi.mock("@/services/api", async (importOriginal) => importOriginal());
+vi.mock("@/services/realtime", () => ({ joinShareChannel: vi.fn() }));
+let emitPresence: (members: PresenceMember[]) => void;
+const leave = vi.fn(async () => {});
+const sendChanged = vi.fn(async () => {});
 
 const segments = [{ id: "s1", name: "도입", durationSec: 60 }, { id: "s2", name: "결론", durationSec: 30 }];
 let timer: Timer;
 beforeEach(async () => {
   vi.useFakeTimers(); vi.setSystemTime(1_000_000); localStorage.clear();
+  leave.mockClear(); sendChanged.mockClear();
+  vi.mocked(joinShareChannel).mockImplementation(() => ({
+    onChanged: () => () => {}, onPresence: (handler) => { emitPresence = handler; return () => {}; },
+    track: async () => {}, sendChanged, leave,
+  }));
   await api.signIn();
   const created = await api.createTimer({ name: "수업 발표", segments });
   if (!created.ok) throw new Error(); timer = created.data;
@@ -33,6 +46,56 @@ function saved(status: "running" | "finished" | "aborted", extra: Partial<LocalR
     transitions: status === "finished" ? [Date.now() - 10_000, Date.now()] : [], rev: 3,
   }, ...extra };
 }
+
+describe("RunScreen sharing", () => {
+  it("creates and persists one idle share, then syncs running and finished states; restart leaves", async () => {
+    const create = vi.spyOn(api, "createShare"); const update = vi.spyOn(api, "updateShareState");
+    await open(); click("공유 링크 만들기"); await flush();
+    const code = local().shareCode!;
+    expect(create).toHaveBeenCalledExactlyOnceWith(timer.id);
+    expect(local().run.status).toBe("idle"); expect(update).not.toHaveBeenCalled();
+    expect(screen.getByText(`${location.origin}/s/${code}`)).toBeInTheDocument();
+    act(() => emitPresence([
+      { clientId: "a", nickname: "학생1", role: "viewer", joinedAt: 1 },
+      { clientId: "b", nickname: "학생2", role: "viewer", joinedAt: 2 },
+    ]));
+    expect(screen.getByText("자리가 가득 찼어요")).toBeInTheDocument();
+    click("시작"); await flush();
+    const count = screen.getByText("접속 3/3"); expect(count.closest("[data-no-advance]")).not.toBeNull();
+    tap(count); expect(local().run.transitions).toEqual([]);
+    expect(screen.queryByText("자리가 가득 찼어요")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "공유 링크 만들기" })).not.toBeInTheDocument();
+    expect(update).toHaveBeenLastCalledWith(code, local().run, { segments });
+    await finish(); expect(update).toHaveBeenLastCalledWith(code, local().run, undefined);
+    expect(local().run.status).toBe("finished"); expect(leave).not.toHaveBeenCalled();
+    click("다시 하기"); await flush(); expect(leave).toHaveBeenCalledOnce();
+    expect(local().shareCode).toBeNull(); expect(screen.getByRole("button", { name: "공유 링크 만들기" })).toBeInTheDocument();
+  });
+  it("shows failed sharing and retries latest abort state without recording it", async () => {
+    vi.spyOn(api, "updateShareState").mockResolvedValueOnce({ ok: false, code: "NOT_FOUND" });
+    const save = vi.spyOn(api, "saveRecord");
+    await open(); click("공유 링크 만들기"); await flush(); click("시작"); await flush();
+    expect(screen.getByText("공유 연결 끊김")).toHaveClass("text-xs", "text-neutral-400");
+    vi.spyOn(window, "confirm").mockReturnValue(true); click("중단"); await flush();
+    expect(api.updateShareState).toHaveBeenLastCalledWith(local().shareCode, local().run, { segments });
+    expect(local().run.status).toBe("aborted"); expect(save).not.toHaveBeenCalled();
+  });
+  it.each(["failure", "exception"])("shows a creation %s without changing local state", async (mode) => {
+    const create = vi.spyOn(api, "createShare");
+    if (mode === "failure") create.mockResolvedValueOnce({ ok: false, code: "NOT_FOUND" });
+    else create.mockRejectedValueOnce(new Error());
+    await open(); click("공유 링크 만들기"); await flush();
+    expect(screen.getByRole("alert")).toHaveTextContent(mode === "failure" ? MESSAGES.errors.NOT_FOUND : MESSAGES.appError.title);
+    expect(device.loadRun(timer.id)).toBeNull();
+  });
+  it("does not create duplicate links while awaiting creation or attach a late link after start", async () => {
+    let resolve!: (value: Awaited<ReturnType<typeof api.createShare>>) => void;
+    const create = vi.spyOn(api, "createShare").mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    await open(); click("공유 링크 만들기"); click("공유 링크 만들기"); click("시작");
+    await act(async () => resolve({ ok: true, data: { code: "late", seatCap: 3 } }));
+    expect(create).toHaveBeenCalledOnce(); expect(local().shareCode).toBeNull(); expect(local().run.status).toBe("running");
+  });
+});
 
 describe("RunScreen", () => {
   it("shows current segments, full-width start and edit/record links without a footer", async () => {

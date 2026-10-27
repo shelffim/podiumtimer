@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { errorMessage, MESSAGES, progressLabel } from "@/lib/messages";
+import { errorMessage, MESSAGES, progressLabel, seatLabel } from "@/lib/messages";
+import { seatUsage } from "@/lib/seats";
 import { buildResult, computeTimer, createIdleRun, isStaleRun, reduceRun } from "@/lib/timer";
 import { api, device } from "@/services/api";
 import type { LocalRun, RunAction } from "@/types/run";
 import type { Timer } from "@/types/timer";
 import { ResultTable } from "./ResultTable";
 import { SegmentList } from "./SegmentList";
+import { ShareHostPanel } from "./ShareHostPanel";
+import { useShareHost } from "./useShareHost";
 import { TimerFace } from "./TimerFace";
 import { useAdvanceInput } from "./useAdvanceInput";
 import { useNow } from "./useNow";
@@ -19,6 +22,8 @@ const button = "inline-flex h-11 items-center justify-center gap-2 rounded-md px
 const primary = `${button} bg-neutral-50 font-medium text-neutral-950 hover:bg-neutral-200`;
 const secondary = `${button} border border-neutral-700 text-neutral-100 hover:bg-neutral-900`;
 const column = "mx-auto min-h-dvh max-w-xl space-y-8 px-4 pt-8 pb-20";
+const idleRun = createIdleRun();
+const noSegments: Timer["segments"] = [];
 type Loaded = { timer: Timer; local: LocalRun; offset: number };
 
 export function RunScreen({ timerId }: { timerId: string }) {
@@ -34,9 +39,17 @@ export function RunScreen({ timerId }: { timerId: string }) {
   const saving = useRef(false);
   const restartPending = useRef(false);
   const generation = useRef(0);
+  const createPending = useRef(false);
+  const shareGeneration = useRef(0);
   const running = loaded?.timer.id === timerId && loaded.local.run.status === "running";
   const now = useNow(loaded?.offset ?? 0, running);
   useWakeLock(running);
+  const share = useShareHost({
+    code: loaded?.timer.id === timerId ? loaded.local.shareCode : null,
+    run: loaded?.local.run ?? idleRun,
+    segments: loaded?.local.segments ?? noSegments,
+    offset: loaded?.offset ?? 0,
+  });
 
   useEffect(() => {
     let active = true;
@@ -59,6 +72,7 @@ export function RunScreen({ timerId }: { timerId: string }) {
     return () => {
       active = false;
       generation.current += 1;
+      shareGeneration.current += 1;
       if (hintTimer.current !== null) clearTimeout(hintTimer.current);
     };
   }, [timerId]);
@@ -70,7 +84,6 @@ export function RunScreen({ timerId }: { timerId: string }) {
     setFinishHint(false);
   }
 
-  // Step 9 can observe these persisted transitions to synchronize the share.
   function persist(local: LocalRun) {
     if (!loaded) return;
     device.saveRun(timerId, local);
@@ -97,6 +110,7 @@ export function RunScreen({ timerId }: { timerId: string }) {
     const segments = type === "start" ? loaded.timer.segments.map((segment) => ({ ...segment })) : loaded.local.segments;
     const run = reduceRun(loaded.local.run, { type, at: Date.now() + loaded.offset }, segments.length);
     if (!run) return;
+    shareGeneration.current += 1;
     clearHint();
     const local = { ...loaded.local, segments, run };
     persist(local);
@@ -119,6 +133,23 @@ export function RunScreen({ timerId }: { timerId: string }) {
       transition("next");
     },
   });
+
+  async function createShare() {
+    if (!loaded || loaded.local.run.status !== "idle" || loaded.local.shareCode || createPending.current) return;
+    createPending.current = true;
+    setActionError(null);
+    const currentGeneration = shareGeneration.current;
+    try {
+      const result = await api.createShare(timerId);
+      if (shareGeneration.current !== currentGeneration) return;
+      if (!result.ok) { setActionError(errorMessage(result.code)); return; }
+      persist({ ...loaded.local, shareCode: result.data.code });
+    } catch {
+      if (shareGeneration.current === currentGeneration) setActionError(MESSAGES.appError.title);
+    } finally {
+      createPending.current = false;
+    }
+  }
 
   async function restart() {
     if (restartPending.current) return;
@@ -165,6 +196,10 @@ export function RunScreen({ timerId }: { timerId: string }) {
         <span className="text-sm tabular-nums text-neutral-400">{progressLabel(view.segmentIndex, segments.length)}</span>
         <button type="button" className={`${button} border border-red-500/40 text-red-400 hover:bg-red-500/10`} onClick={() => { if (window.confirm(copy.abortConfirm)) transition("abort"); }}>{copy.abort}</button>
       </header>
+      {local.shareCode ? <div data-no-advance className="flex shrink-0 flex-wrap items-center justify-center gap-3 px-4 pt-2">
+        {share.seatCap !== null ? <span className="text-sm tabular-nums text-neutral-400">{seatLabel(seatUsage(share.members, share.seatCap).used, share.seatCap)}</span> : null}
+        {share.disconnected ? <span className="text-xs text-neutral-400">{MESSAGES.share.disconnected}</span> : null}
+      </div> : null}
       <div ref={targetRef} className="flex min-h-0 flex-1 items-center px-4 pb-16">
         <TimerFace segments={segments} view={view} finishHint={finishHint} />
       </div>
@@ -179,6 +214,7 @@ export function RunScreen({ timerId }: { timerId: string }) {
       {timer.segments.length > 0
         ? <button type="button" className={`${primary} w-full`} onClick={() => transition("start")}>{MESSAGES.timers.start}</button>
         : <p className="text-sm text-neutral-300">{copy.noSegments}</p>}
+      <ShareHostPanel timerId={timerId} code={local.shareCode} seatCap={share.seatCap} members={share.members} onCreate={() => void createShare()} />
       <div className="flex flex-wrap gap-3">
         <Link href={`/timers/${timerId}`} className={secondary}>{MESSAGES.timers.edit}</Link>
         <Link href={`/timers/${timerId}/records`} className={secondary}>{MESSAGES.timers.records}</Link>

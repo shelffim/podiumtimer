@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel, seatLabel } from "./messages";
 
 describe("messages", () => {
+  it("provides sharing labels and formats seat usage", () => {
+    expect(seatLabel(2, 3)).toBe("접속 2/3");
+    expect(MESSAGES.share).toMatchObject({ hostName: "발표자", create: "공유 링크 만들기", copy: "복사", copied: "복사했어요", full: "자리가 가득 찼어요", passSeats: "30일권은 10명까지", disconnected: "공유 연결 끊김" });
+  });
   it("provides the presenter run controls and persistence messages", () => {
     expect(MESSAGES.run).toMatchObject({
       undo: "되돌리기", abort: "중단", abortConfirm: "발표를 중단할까요?",

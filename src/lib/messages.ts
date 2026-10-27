@@ -61,6 +61,16 @@ export const MESSAGES = {
     saveFailed: "기록을 저장하지 못했어요",
     retrySave: "다시 저장",
   },
+  share: {
+    hostName: "발표자",
+    create: "공유 링크 만들기",
+    copy: "복사",
+    copied: "복사했어요",
+    copyFailed: "복사하지 못했어요. 다시 시도해 주세요",
+    full: "자리가 가득 찼어요",
+    passSeats: `30일권은 ${LIMITS.pass.seats}명까지`,
+    disconnected: "공유 연결 끊김",
+  },
   timerFace: {
     finishHint: "한 번 더 누르면 종료",
     lastResult: "직전 구간",
@@ -224,4 +234,8 @@ export function totalRemainingLabel(remainingMs: number): string {
 
 export function nextSegmentLabel(name?: string): string {
   return name === undefined ? MESSAGES.timerFace.lastSegment : `다음: ${name}`;
+}
+
+export function seatLabel(used: number, cap: number): string {
+  return `접속 ${used}/${cap}`;
 }
