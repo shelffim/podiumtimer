@@ -10,6 +10,7 @@ import {
   formatClock,
   formatDuration,
   isOvertime,
+  timelineLayout,
   isStaleRun,
   reduceRun,
   toSegmentResult,
@@ -253,6 +254,40 @@ describe("computeTimer", () => {
     Object.freeze(run);
     expect(computeTimer(frozenSegments, run, 18_000).progressMs).toBe(15_000);
     expect(buildResult(frozenSegments, run)).toHaveLength(1);
+  });
+});
+
+describe("timelineLayout", () => {
+  const blocks = [
+    { id: "a", name: "도입", durationSec: 10 },
+    { id: "b", name: "본론", durationSec: 20 },
+    { id: "c", name: "결론", durationSec: 10 },
+  ];
+
+  it("converts the supplied progress to block proportions and one current-block dot", () => {
+    expect(timelineLayout(blocks, 1, 20_000)).toEqual([
+      { widthPercent: 25, fillPercent: 100, completed: true, markerPercent: null },
+      { widthPercent: 50, fillPercent: 50, completed: false, markerPercent: 50 },
+      { widthPercent: 25, fillPercent: 0, completed: false, markerPercent: null },
+    ]);
+  });
+
+  it("clamps the current fill and dot to its block edges", () => {
+    expect(timelineLayout(blocks, 1, 99_000)[1]).toMatchObject({ fillPercent: 100, markerPercent: 100 });
+    expect(timelineLayout(blocks, 1, 0)[1]).toMatchObject({ fillPercent: 0, markerPercent: 0 });
+  });
+
+  it("marks all blocks completed when done and puts only one dot at the end", () => {
+    const layout = timelineLayout(blocks, 2, 40_000, true);
+    expect(layout.every((block) => block.completed && block.fillPercent === 100)).toBe(true);
+    expect(layout.map((block) => block.markerPercent)).toEqual([null, null, 100]);
+  });
+
+  it("handles empty segments and a single segment", () => {
+    expect(timelineLayout([], 0, 0)).toEqual([]);
+    expect(timelineLayout(blocks.slice(0, 1), 0, 0)).toEqual([
+      { widthPercent: 100, fillPercent: 0, completed: false, markerPercent: 0 },
+    ]);
   });
 });
 

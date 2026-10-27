@@ -95,6 +95,22 @@ export function totalPlannedMs(segments: Segment[]): number {
   return segments.reduce((sum, segment) => sum + segment.durationSec * 1000, 0);
 }
 
+/** Maps computeTimer's planned progress to block-local display percentages. */
+export function timelineLayout(segments: Segment[], segmentIndex: number, progressMs: number, done = false) {
+  const total = totalPlannedMs(segments);
+  let startMs = 0;
+  return segments.map((segment, index) => {
+    const plannedMs = totalPlannedMs([segment]);
+    const completed = done || index < segmentIndex;
+    const current = index === segmentIndex;
+    const fillPercent = completed ? 100 : current
+      ? Math.max(0, Math.min(100, (progressMs - startMs) / plannedMs * 100)) : 0;
+    const markerPercent = done ? (index === segments.length - 1 ? 100 : null) : current ? fillPercent : null;
+    startMs += plannedMs;
+    return { widthPercent: plannedMs / total * 100, fillPercent, completed, markerPercent };
+  });
+}
+
 function clockFromSeconds(seconds: number): string {
   const absolute = Math.abs(seconds);
   return `${seconds < 0 ? "-" : ""}${Math.floor(absolute / 60)}:${String(absolute % 60).padStart(2, "0")}`;

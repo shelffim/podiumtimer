@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, progressLabel, totalRemainingLabel, nextSegmentLabel } from "./messages";
 
 describe("messages", () => {
+  it("formats face labels using zero-based progress and the shared clock rounding", () => {
+    expect(progressLabel(2, 7)).toBe("3 / 7");
+    expect(progressLabel(0, 1)).toBe("1 / 1");
+    expect(totalRemainingLabel(510_000)).toBe("전체 8:30 남음");
+    expect(totalRemainingLabel(-80_000)).toBe("전체 -1:20");
+    expect(totalRemainingLabel(-999)).toBe("전체 0:00 남음");
+    expect(nextSegmentLabel("반대 입론")).toBe("다음: 반대 입론");
+    expect(nextSegmentLabel()).toBe("마지막 구간");
+    expect(MESSAGES.timerFace.finishHint).toBe("한 번 더 누르면 종료");
+    expect(MESSAGES.timerFace.lastResult).toBe("직전 구간");
+    expect(Object.values(MESSAGES.results)).toEqual(["구간", "계획", "실제", "차이"]);
+  });
   it("formats timer screen labels and Korean pass expiry dates", () => {
     expect(planLabel("free", null)).toBe("무료");
     expect(planLabel("pass", Date.UTC(2026, 10, 24, 15))).toBe("30일권 · 11월 25일까지");

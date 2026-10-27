@@ -1,7 +1,7 @@
 import type { ErrorCode, Plan } from "@/types/api";
 import type { Verdict } from "@/types/timer";
 import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
-import { formatDuration, verdictOf } from "./timer";
+import { formatClock, formatDuration, isOvertime, verdictOf } from "./timer";
 
 export const MESSAGES = {
   serviceName: "Podium Timer",
@@ -48,6 +48,17 @@ export const MESSAGES = {
     deleteConfirm: "타이머를 삭제할까요? 기록과 공유 링크도 함께 지워져요",
     notFound: "타이머를 찾을 수 없어요",
     backToList: "목록으로",
+  },
+  timerFace: {
+    finishHint: "한 번 더 누르면 종료",
+    lastResult: "직전 구간",
+    lastSegment: "마지막 구간",
+  },
+  results: {
+    segment: "구간",
+    planned: "계획",
+    actual: "실제",
+    difference: "차이",
   },
   appError: {
     title: "문제가 생겼어요",
@@ -189,4 +200,16 @@ export function totalTimeLabel(plannedMs: number): string {
 
 export function segmentFieldLabel(index: number, field: "name" | "clock"): string {
   return `구간 ${index + 1} ${field === "name" ? MESSAGES.timers.segmentName : MESSAGES.timers.segmentClock}`;
+}
+
+export function progressLabel(index: number, count: number): string {
+  return `${index + 1} / ${count}`;
+}
+
+export function totalRemainingLabel(remainingMs: number): string {
+  return `전체 ${formatClock(remainingMs)}${isOvertime(remainingMs) ? "" : " 남음"}`;
+}
+
+export function nextSegmentLabel(name?: string): string {
+  return name === undefined ? MESSAGES.timerFace.lastSegment : `다음: ${name}`;
 }
