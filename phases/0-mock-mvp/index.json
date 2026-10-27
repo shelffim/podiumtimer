@@ -37,7 +37,10 @@
     {
       "step": 4,
       "name": "realtime-mock",
-      "status": "pending"
+      "status": "completed",
+      "summary": "src/services/realtime.ts에 ShareChannel(onChanged·onPresence·track·sendChanged·leave)과 BroadcastChannel mock(changed·presence·leave 메시지, 1회 참가 응답·pagehide 정리·채널 생성 함수 주입)을 구현했어요. TDD 신규 30개 포함 전체 테스트 259개, lint, 프로젝트 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "started_at": "2026-10-28T00:22:51+0900",
+      "completed_at": "2026-10-28T00:26:17+0900"
     },
     {
       "step": 5,
