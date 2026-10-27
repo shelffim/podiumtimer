@@ -192,9 +192,9 @@ class StepExecutor:
 
     def _load_guardrails(self) -> str:
         sections = []
-        claude_md = ROOT / "CLAUDE.md"
-        if claude_md.exists():
-            sections.append(f"## 프로젝트 규칙 (CLAUDE.md)\n\n{claude_md.read_text()}")
+        agents_md = ROOT / "AGENTS.md"
+        if agents_md.exists():
+            sections.append(f"## 프로젝트 규칙 (AGENTS.md)\n\n{agents_md.read_text()}")
         docs_dir = ROOT / "docs"
         if docs_dir.is_dir():
             for doc in sorted(docs_dir.glob("*.md")):
@@ -236,9 +236,9 @@ class StepExecutor:
             f"6. 직접 커밋하지 마라. 코드와 메타데이터 커밋은 실행기가 처리한다.\n\n---\n\n"
         )
 
-    # --- Claude 호출 ---
+    # --- Codex 호출 ---
 
-    def _invoke_claude(self, step: dict, preamble: str) -> dict:
+    def _invoke_codex(self, step: dict, preamble: str) -> dict:
         step_num, step_name = step["step"], step["name"]
         step_file = self._phase_dir / f"step{step_num}.md"
 
@@ -247,10 +247,11 @@ class StepExecutor:
             sys.exit(1)
 
         prompt = preamble + step_file.read_text()
-        command = ["claude", "-p", "--dangerously-skip-permissions", "--output-format", "json", prompt]
+        # 프롬프트는 인자 길이 제한을 피하려고 stdin("-")으로 넘긴다.
+        command = ["codex", "exec", "--dangerously-bypass-approvals-and-sandbox", "--json", "-"]
         try:
             result = subprocess.run(
-                command, cwd=self._root, capture_output=True, text=True, timeout=1800,
+                command, cwd=self._root, input=prompt, capture_output=True, text=True, timeout=1800,
             )
         except subprocess.TimeoutExpired as error:
             # TimeoutExpired는 text=True에서도 bytes 출력을 가질 수 있다.
@@ -261,13 +262,13 @@ class StepExecutor:
             if isinstance(stderr, bytes):
                 stderr = stderr.decode("utf-8", errors="replace")
             result = subprocess.CompletedProcess(
-                command, 124, stdout, f"Claude timed out after 1800 seconds.\n{stderr}",
+                command, 124, stdout, f"Codex timed out after 1800 seconds.\n{stderr}",
             )
         except OSError as error:
             result = subprocess.CompletedProcess(command, 127, "", str(error))
 
         if result.returncode != 0:
-            print(f"\n  WARN: Claude가 비정상 종료됨 (code {result.returncode})")
+            print(f"\n  WARN: Codex가 비정상 종료됨 (code {result.returncode})")
             if result.stderr:
                 print(f"  stderr: {result.stderr[:500]}")
 
@@ -330,7 +331,7 @@ class StepExecutor:
                 tag += f" [retry {attempt}/{self.MAX_RETRIES}]"
 
             with progress_indicator(tag) as pi:
-                output = self._invoke_claude(step, preamble)
+                output = self._invoke_codex(step, preamble)
             elapsed = int(pi.elapsed)
 
             index = self._read_json(self._index_file)
@@ -339,7 +340,7 @@ class StepExecutor:
 
             process_error = None
             if output["exitCode"] != 0:
-                process_error = f"Claude exited with code {output['exitCode']}: {output['stderr'][:500]}"
+                process_error = f"Codex exited with code {output['exitCode']}: {output['stderr'][:500]}"
                 for s in index["steps"]:
                     if s["step"] == step_num:
                         s.pop("completed_at", None)

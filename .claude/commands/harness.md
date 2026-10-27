@@ -19,7 +19,7 @@
 설계 원칙:
 
 1. **Scope 최소화** — 하나의 step에서 하나의 레이어 또는 모듈만 다룬다. 여러 모듈을 동시에 수정해야 하면 step을 쪼갠다.
-2. **자기완결성** — 각 step 파일은 독립된 Claude 세션에서 실행된다. "이전 대화에서 논의한 바와 같이" 같은 외부 참조는 금지한다. 필요한 정보는 전부 파일 안에 적는다.
+2. **자기완결성** — 각 step 파일은 독립된 Codex 세션에서 실행된다. "이전 대화에서 논의한 바와 같이" 같은 외부 참조는 금지한다. 필요한 정보는 전부 파일 안에 적는다.
 3. **사전 준비 강제** — 관련 문서 경로와 이전 step에서 생성/수정된 파일 경로를 명시한다. 세션이 코드를 읽고 맥락을 파악한 뒤 작업하도록 유도한다.
 4. **시그니처 수준 지시** — 함수/클래스의 인터페이스만 제시하고 내부 구현은 에이전트 재량에 맡긴다. 단, 설계 의도에서 벗어나면 안 되는 핵심 규칙(멱등성, 보안, 데이터 무결성 등)은 반드시 명시한다.
 5. **AC는 실행 가능한 커맨드** — "~가 동작해야 한다" 같은 추상적 서술이 아닌 `npm run build && npm test` 같은 실제 실행 가능한 검증 커맨드를 포함한다.
@@ -65,7 +65,7 @@
 
 필드 규칙:
 
-- `project`: 프로젝트명 (CLAUDE.md 참조).
+- `project`: 프로젝트명 (AGENTS.md 참조).
 - `phase`: task 이름. 디렉토리명과 일치시킨다.
 - `steps[].step`: 0부터 시작하는 순번.
 - `steps[].name`: kebab-case slug.
@@ -75,9 +75,9 @@
 
 | 전이 | 기록되는 필드 | 기록 주체 |
 |------|-------------|----------|
-| → `completed` | `completed_at`, `summary` | Claude 세션 (summary), execute.py (timestamp) |
-| → `error` | `failed_at`, `error_message` | Claude 세션 (message), execute.py (timestamp) |
-| → `blocked` | `blocked_at`, `blocked_reason` | Claude 세션 (reason), execute.py (timestamp) |
+| → `completed` | `completed_at`, `summary` | Codex 세션 (summary), execute.py (timestamp) |
+| → `error` | `failed_at`, `error_message` | Codex 세션 (message), execute.py (timestamp) |
+| → `blocked` | `blocked_at`, `blocked_reason` | Codex 세션 (reason), execute.py (timestamp) |
 
 `summary`는 step 완료 시 산출물을 한 줄로 요약한 것으로, execute.py가 다음 step 프롬프트에 컨텍스트로 누적 전달한다. 따라서 다음 step에 유용한 정보(생성된 파일, 핵심 결정 등)를 담아야 한다.
 
@@ -118,7 +118,7 @@ npm test        # 테스트 통과
 2. 아키텍처 체크리스트를 확인한다:
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가?
-   - CLAUDE.md CRITICAL 규칙을 위반하지 않았는가?
+   - AGENTS.md CRITICAL 규칙을 위반하지 않았는가?
    - 화면을 만들었다면 UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/{task-name}/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"`
@@ -146,14 +146,14 @@ python3 scripts/execute.py {task-name} --push  # 실행 후 push
 execute.py가 자동으로 처리하는 것:
 
 - `feat-{task-name}` 브랜치 생성/checkout
-- 가드레일 주입 — CLAUDE.md + docs/*.md 내용을 매 step 프롬프트에 포함
+- 가드레일 주입 — AGENTS.md + docs/*.md 내용을 매 step 프롬프트에 포함
 - 컨텍스트 누적 — 완료된 step의 summary를 다음 step 프롬프트에 전달
 - 자가 교정 — 실패 시 최대 3회 재시도하며, 이전 에러 메시지를 프롬프트에 피드백
-- 실행 실패 처리 — Claude 비정상 종료·타임아웃·실행 오류도 재시도 후 실패 상태와 로그를 기록
+- 실행 실패 처리 — Codex 비정상 종료·타임아웃·실행 오류도 재시도 후 실패 상태와 로그를 기록
 - 2단계 커밋 — 코드 변경(`feat`)과 메타데이터(`chore`)를 분리 커밋
 - 타임스탬프 — started_at, completed_at, failed_at, blocked_at 자동 기록
 
-Claude 세션은 직접 커밋하지 않는다. 실행기가 커밋을 담당하며, Git 작업 실패 시 중단한다.
+Codex 세션은 직접 커밋하지 않는다. 실행기가 커밋을 담당하며, Git 작업 실패 시 중단한다.
 
 에러 복구:
 
