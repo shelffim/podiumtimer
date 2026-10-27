@@ -124,6 +124,8 @@ rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutr
 
 시간 표기: `m:ss`(예: `1:42`, `12:05`, `-0:05`). 구간 차이는 `0:12 늦음`, `0:08 빠름`, `정시`.
 
+서비스 이름은 `Podium Timer`로 쓴다. 로고 없이 시스템 글꼴의 흰 글자(`text-neutral-50`)로만 표시한다.
+
 ## 화면별 구성
 
 ### 타이머 화면 (발표자, `/timers/[id]/run`)
