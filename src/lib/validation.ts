@@ -34,6 +34,12 @@ export const runStateSchema = z.object({
   rev: z.number({ error: copy.invalidInput }).int({ error: copy.invalidInput }).min(0, { error: copy.invalidInput }),
 }, { error: copy.invalidInput });
 
+export const localRunSchema = z.object({
+  segments: z.array(segmentSchema, { error: copy.invalidInput }),
+  run: runStateSchema,
+  shareCode: z.string({ error: copy.invalidInput }).nullable(),
+}, { error: copy.invalidInput });
+
 export const recordInputSchema = z.object({
   startedAt: numberSchema,
   segments: z.array(z.object({

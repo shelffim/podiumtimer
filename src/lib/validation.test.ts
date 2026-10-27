@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LIMITS } from "./billing";
 import { MESSAGES } from "./messages";
 import { createIdleRun } from "./timer";
-import { TIMER_NAME_MAX, SEGMENT_NAME_MAX, NICKNAME_MAX, SEGMENT_MIN_SEC, SEGMENT_MAX_SEC, segmentSchema, timerInputSchema, runStateSchema, recordInputSchema, parseClock, sanitizeNickname, nicknameSchema, safeReturnTo } from "./validation";
+import { TIMER_NAME_MAX, SEGMENT_NAME_MAX, NICKNAME_MAX, SEGMENT_MIN_SEC, SEGMENT_MAX_SEC, segmentSchema, timerInputSchema, runStateSchema, localRunSchema, recordInputSchema, parseClock, sanitizeNickname, nicknameSchema, safeReturnTo } from "./validation";
 
 const segment = { id: "a", name: "도입", durationSec: 5 };
 
@@ -72,6 +72,18 @@ describe("input schemas", () => {
       const invalid = schema.safeParse({});
       expect(invalid.success).toBe(false);
       if (!invalid.success) for (const issue of invalid.error.issues) expect(localized).toContain(issue.message);
+    }
+  });
+});
+
+describe("localRunSchema", () => {
+  it("composes existing segment and run validation with a nullable share code", () => {
+    const local = { segments: [segment], run: createIdleRun(), shareCode: null };
+    expect(localRunSchema.parse(local)).toEqual(local);
+    expect(localRunSchema.parse({ ...local, shareCode: "code" }).shareCode).toBe("code");
+    expect(localRunSchema.safeParse({ ...local, segments: [] }).success).toBe(true);
+    for (const invalid of [null, {}, { ...local, shareCode: 1 }, { ...local, run: {} }, { ...local, segments: [{ ...segment, durationSec: 4 }] }]) {
+      expect(localRunSchema.safeParse(invalid).success).toBe(false);
     }
   });
 });
