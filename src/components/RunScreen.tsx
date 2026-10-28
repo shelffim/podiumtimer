@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { errorMessage, MESSAGES, progressLabel, resultSummaryLabel, seatCountLabel, segmentCountLabel, totalTimeLabel } from "@/lib/messages";
+import { errorMessage, MESSAGES, progressLabel, resultSummaryLabel, savedLabel, seatCountLabel, segmentCountLabel, totalTimeLabel } from "@/lib/messages";
 import { seatUsage } from "@/lib/seats";
 import { buildResult, computeTimer, createIdleRun, isStaleRun, reduceRun, resultTotals, totalPlannedMs } from "@/lib/timer";
 import { api, device } from "@/services/api";
@@ -273,7 +273,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
     </div>
     <div className="card"><ResultTable results={results} /></div>
     {saveStatus === "saved" ? <p role="status" className="caption flex items-center gap-1">
-      <Icon name="check" size={14} />{copy.saved}{local.shareCode ? ` · ${copy.sharedRestart}` : ""}
+      <Icon name="check" size={14} />{savedLabel(local.shareCode !== null)}
     </p> : null}
     {saveStatus === "failed" ? <div className="flex flex-col items-start gap-3">
       <p role="alert" className="text-sm text-red-400">{copy.saveFailed}</p>

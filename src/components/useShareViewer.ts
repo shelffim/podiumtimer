@@ -28,6 +28,7 @@ export function useShareViewer({ code, nickname, offset }: Options): ViewerState
     let delay = 1_000;
     let retry: ReturnType<typeof setTimeout> | null = null;
     let changedTimer: ReturnType<typeof setTimeout> | null = null;
+    let changedQueued = false;
     let poll: ReturnType<typeof setInterval> | null = null;
     let offChanged = () => {};
     let offPresence = () => {};
@@ -105,10 +106,18 @@ export function useShareViewer({ code, nickname, offset }: Options): ViewerState
       if (document.visibilityState === "visible") enqueue();
     }
 
-    offChanged = channel.onChanged(() => {
-      if (stopped || changedTimer !== null) return;
-      changedTimer = setTimeout(() => { changedTimer = null; enqueue(); }, 1_000);
-    });
+    // 첫 신호는 바로 읽고, 1초 안에 더 온 신호는 1초 뒤에 한 번만 읽어요.
+    function onChangedSignal() {
+      if (stopped) return;
+      if (changedTimer !== null) { changedQueued = true; return; }
+      enqueue();
+      changedTimer = setTimeout(() => {
+        changedTimer = null;
+        if (changedQueued) { changedQueued = false; onChangedSignal(); }
+      }, 1_000);
+    }
+
+    offChanged = channel.onChanged(onChangedSignal);
     offPresence = channel.onPresence((next) => {
       if (stopped) return;
       members = next;

@@ -9,9 +9,7 @@ export const MESSAGES = {
   common: {
     back: "뒤로",
     cancel: "취소",
-  },
-  footer: {
-    separator: "·",
+    separator: " · ",
   },
   landing: {
     headline: "구간마다, 계획보다 빨랐는지 늦었는지.",
@@ -342,6 +340,10 @@ export function segmentFieldLabel(index: number, field: keyof typeof segmentFiel
   return `${MESSAGES.timers.segments} ${index + 1} ${segmentFields[field]}`;
 }
 
+export function segmentPlaceholder(index: number): string {
+  return `${MESSAGES.timers.segments} ${index + 1}`;
+}
+
 export function progressLabel(index: number, count: number): string {
   return `${index + 1} / ${count}`;
 }
@@ -360,6 +362,14 @@ export function seatCountLabel(used: number, cap: number): string {
 
 export function seatLabel(used: number, cap: number): string {
   return `${MESSAGES.share.seats} ${seatCountLabel(used, cap)}명`;
+}
+
+export function seatsFullLabel(showPass: boolean): string {
+  return showPass ? `${MESSAGES.share.full}${MESSAGES.common.separator}${MESSAGES.share.passSeats}` : MESSAGES.share.full;
+}
+
+export function savedLabel(shared: boolean): string {
+  return shared ? `${MESSAGES.run.saved}${MESSAGES.common.separator}${MESSAGES.run.sharedRestart}` : MESSAGES.run.saved;
 }
 
 export function viewerFullLabel(cap: number): string {

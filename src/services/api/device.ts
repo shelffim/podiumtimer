@@ -1,17 +1,23 @@
 import { localRunSchema } from "@/lib/validation";
 import type { LocalRun } from "@/types/run";
 
-function read(key: string): string | null {
+type Area = "local" | "session";
+
+function storage(area: Area): Storage {
+  return area === "local" ? localStorage : sessionStorage;
+}
+
+function read(key: string, area: Area = "local"): string | null {
   try {
-    return localStorage.getItem(key);
+    return storage(area).getItem(key);
   } catch {
     return null;
   }
 }
 
-function write(key: string, value: string): void {
+function write(key: string, value: string, area: Area = "local"): void {
   try {
-    localStorage.setItem(key, value);
+    storage(area).setItem(key, value);
   } catch {
     // 저장소를 쓸 수 없으면 복원 기능만 빠져요.
   }
@@ -42,11 +48,12 @@ export const device = {
   saveNickname(nickname: string): void {
     write("nickname", nickname);
   },
+  // 탭마다 따로 둬요. 같은 브라우저의 다른 탭도 접속자로 따로 세요.
   getClientId(): string {
-    const saved = read("clientId");
+    const saved = read("clientId", "session");
     if (saved) return saved;
     const id = crypto.randomUUID();
-    write("clientId", id);
+    write("clientId", id, "session");
     return id;
   },
   hasJoined(code: string): boolean {

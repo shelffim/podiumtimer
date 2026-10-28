@@ -137,6 +137,13 @@ describe("TimerEditor", () => {
     Reflect.deleteProperty(document, "elementFromPoint");
   });
 
+  it("gives each row's grip and remove buttons a 44px touch target", async () => {
+    render(<TimerEditor />);
+    for (const name of ["구간 1 순서 변경", "구간 1 삭제"]) {
+      expect(await screen.findByRole("button", { name })).toHaveClass("size-11");
+    }
+  });
+
   it("allows saving zero segments", async () => {
     const timer = await seed();
     const user = userEvent.setup();

@@ -54,11 +54,19 @@ describe("useShareViewer", () => {
     expect(channel.track).toHaveBeenCalledWith({ nickname: "학생", role: "viewer", joinedAt: 50_200 });
     expect(result.current).toEqual({ share: initial, status: "ready", disconnected: false });
   });
-  it("coalesces three changed signals within a second into one read", async () => {
+  it("reads right away on a changed signal and folds later signals within a second into one read", async () => {
     open(); await flush();
-    act(() => changed()); await tick(300); act(() => changed()); await tick(300); act(() => changed());
-    await tick(400); expect(get).toHaveBeenCalledTimes(2);
-    await tick(1_000); expect(get).toHaveBeenCalledTimes(2);
+    await act(async () => changed()); expect(get).toHaveBeenCalledTimes(2);
+    await tick(300); act(() => changed()); await tick(300); act(() => changed());
+    expect(get).toHaveBeenCalledTimes(2);
+    await tick(399); expect(get).toHaveBeenCalledTimes(2);
+    await tick(1); expect(get).toHaveBeenCalledTimes(3);
+    await tick(5_000); expect(get).toHaveBeenCalledTimes(3);
+  });
+  it("does not read again when a single changed signal's window ends", async () => {
+    open(); await flush();
+    await act(async () => changed()); expect(get).toHaveBeenCalledTimes(2);
+    await tick(2_000); expect(get).toHaveBeenCalledTimes(2);
   });
   it("only applies higher revisions and ignores changed payloads", async () => {
     get.mockResolvedValueOnce({ ok: true, data: { ...initial, rev: 5 } });

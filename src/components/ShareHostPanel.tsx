@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LIMITS } from "@/lib/billing";
-import { MESSAGES, seatLabel } from "@/lib/messages";
+import { MESSAGES, seatLabel, seatsFullLabel } from "@/lib/messages";
 import { seatUsage } from "@/lib/seats";
 import type { PresenceMember } from "@/types/share";
 import { Icon } from "./Icon";
@@ -59,8 +59,8 @@ export function ShareHostPanel({ timerId, code, seatCap, members, onCreate }: {
           </ul>
         </div>
         {usage.full ? (seatCap < LIMITS.pass.seats
-          ? <LimitNotice text={`${copy.full} · ${copy.passSeats}`} pricingHref={`/pricing?returnTo=/timers/${timerId}/run`} />
-          : <LimitNotice text={copy.full} />) : null}
+          ? <LimitNotice text={seatsFullLabel(true)} pricingHref={`/pricing?returnTo=/timers/${timerId}/run`} />
+          : <LimitNotice text={seatsFullLabel(false)} />) : null}
       </> : null}
     </>}
   </section>;

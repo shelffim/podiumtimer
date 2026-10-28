@@ -14,9 +14,9 @@ import { AverageTable } from "./AverageTable";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Icon } from "./Icon";
 import { ResultTable } from "./ResultTable";
+import { verdictColor } from "./verdictColor";
 
 const copy = MESSAGES.records;
-const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
 
 export function RecordsView({ timerId }: { timerId: string }) {
   const router = useRouter();

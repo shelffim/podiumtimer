@@ -121,7 +121,7 @@ describe("ViewerScreen", () => {
   });
   it("shows connection loss while preserving the last view and recovers after retry", async () => {
     await open(true); vi.mocked(api.getShare).mockRejectedValueOnce(new Error());
-    act(() => changed()); await tick(1_000);
+    await act(async () => changed());
     expect(screen.getByText("연결 끊김")).toHaveAttribute("role", "status");
     expect(screen.getByText("발표자가 시작하면 자동으로 시작돼요")).toBeInTheDocument();
     await tick(1_000); expect(screen.queryByText("연결 끊김")).not.toBeInTheDocument();

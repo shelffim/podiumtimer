@@ -15,7 +15,9 @@ describe("AppBar", () => {
 
   it("replaces the service name with a back link and title, then shows actions", () => {
     render(<AppBar back="/timers" title="수업 발표"><button type="button">로그아웃</button></AppBar>);
-    expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers");
+    const back = screen.getByRole("link", { name: MESSAGES.common.back });
+    expect(back).toHaveAttribute("href", "/timers");
+    expect(back).toHaveAttribute("title", MESSAGES.common.back);
     expect(screen.queryByRole("link", { name: MESSAGES.serviceName })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "수업 발표" })).toHaveClass("truncate");
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("button", { name: "로그아웃" }));

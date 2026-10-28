@@ -44,7 +44,7 @@ src/
 │   ├── time.ts                         서버 시각 보정
 │   └── messages.ts                     한국어 문구 모음
 ├── services/
-│   ├── api/                            화면이 부르는 유일한 데이터 창구: index.ts · live.ts · mock.ts
+│   ├── api/                            화면이 부르는 유일한 데이터 창구: index.ts · live.ts · mock.ts · device.ts(실행 상태·닉네임·clientId 기기 저장)
 │   ├── supabase/                       server(쿠키 세션, 읽기) · admin(비밀 키) · browser(Realtime 전용)
 │   ├── polar.ts
 │   └── realtime.ts                     live: Supabase Broadcast·Presence · mock: BroadcastChannel
@@ -168,9 +168,9 @@ admit(presence, clientId, seatCap): boolean   // 발표자 1자리를 빼고 시
 
 ## 공유 동기화
 - 채널 `share:{code}` (공개). 메시지는 `changed { rev }` 하나. 발표자가 저장에 성공하면 보낸다.
-- Presence: 키 = 기기별 무작위 clientId, 내용 = `{ nickname, role: 'host' | 'viewer', joinedAt }`(`joinedAt`은 서버 보정 시각). 표시와 인원 계산에만 쓴다.
+- Presence: 키 = 탭별 무작위 clientId(sessionStorage라 새로고침해도 유지, 같은 브라우저의 다른 탭은 다른 값), 내용 = `{ nickname, role: 'host' | 'viewer', joinedAt }`(`joinedAt`은 서버 보정 시각). 표시와 인원 계산에만 쓴다.
 - **발표자**: 상태가 바뀔 때마다 저장한다. 실패하면 최신 상태로 간격을 늘려 재시도하고, 그동안 "공유 연결 끊김"을 작게 표시한다. 화면 복귀·재접속 때 최신 상태를 한 번 더 저장한다.
-- **시청자**: 채널을 먼저 구독하고 그다음 상태를 읽는다. `changed`를 받으면(1초 안의 여러 개는 한 번), 화면이 보이는 동안 10초마다, 화면 복귀 때 다시 읽는다. 응답의 `rev`가 지금보다 클 때만 반영한다. 조회가 실패하면 간격을 늘려 재시도하고 "연결 끊김"을 표시한다.
+- **시청자**: 채널을 먼저 구독하고 그다음 상태를 읽는다. `changed`를 받으면(첫 신호는 바로, 1초 안에 더 온 신호는 1초 뒤 한 번), 화면이 보이는 동안 10초마다, 화면 복귀 때 다시 읽는다. 응답의 `rev`가 지금보다 클 때만 반영한다. 조회가 실패하면 간격을 늘려 재시도하고 "연결 끊김"을 표시한다.
 - **입장 판정**: 시청자는 Presence가 바뀔 때마다 `admit`으로 자기 자리를 확인하고, 자리가 없으면 "인원이 가득 찼어요" 화면으로 바꾼 뒤 채널을 떠난다. 발표자는 시청자 수가 `seatCap − 1`에 닿으면 "자리가 가득 찼어요"를 보여준다(무료면 "30일권은 10명까지" + [30일권 보기]).
 - 시각 보정: 페이지에 들어올 때 `/api/time`으로 한 번 구한다(`offset = serverNow + 왕복시간/2 − Date.now()`). mock은 기기 시계 그대로.
 

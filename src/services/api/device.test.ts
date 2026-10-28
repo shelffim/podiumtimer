@@ -9,7 +9,7 @@ const local: LocalRun = {
   shareCode: "share-code",
 };
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
 afterEach(() => vi.restoreAllMocks());
 
 describe("device storage", () => {
@@ -34,17 +34,26 @@ describe("device storage", () => {
     },
   );
 
-  it("stores nickname and clientId under their own keys and reuses an existing client id", () => {
+  it("stores nickname on the device and keeps a client id per tab across reloads", () => {
     expect(device.loadNickname()).toBeNull();
     device.saveNickname("발표자");
     expect(localStorage.getItem("nickname")).toBe("발표자");
     expect(device.loadNickname()).toBe("발표자");
     const id = device.getClientId();
     expect(id).toMatch(/^[\da-f-]{36}$/i);
-    expect(localStorage.getItem("clientId")).toBe(id);
+    expect(sessionStorage.getItem("clientId")).toBe(id);
+    expect(localStorage.getItem("clientId")).toBeNull();
     expect(device.getClientId()).toBe(id);
-    localStorage.setItem("clientId", "another-tab-id");
-    expect(device.getClientId()).toBe("another-tab-id");
+  });
+
+  it("gives each tab of the same browser its own client id", () => {
+    // 같은 브라우저의 탭들은 localStorage를 함께 쓰지만 sessionStorage는 탭마다 따로예요.
+    localStorage.setItem("clientId", "shared-id");
+    const first = device.getClientId();
+    sessionStorage.clear();
+    const second = device.getClientId();
+    expect(first).not.toBe("shared-id");
+    expect(second).not.toBe(first);
   });
 
   it("tracks admission separately for each share code", () => {
@@ -68,8 +77,9 @@ describe("device storage", () => {
     expect(device.getClientId()).toMatch(/^[\da-f-]{36}$/i);
   });
 
-  it("swallows exceptions accessing the localStorage property itself", () => {
+  it("swallows exceptions accessing the storage properties themselves", () => {
     vi.spyOn(window, "localStorage", "get").mockImplementation(() => { throw new DOMException("denied", "SecurityError"); });
+    vi.spyOn(window, "sessionStorage", "get").mockImplementation(() => { throw new DOMException("denied", "SecurityError"); });
     expect(device.loadRun("a")).toBeNull();
     expect(device.loadNickname()).toBeNull();
     expect(device.hasJoined("a")).toBe(false);
