@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent,
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LIMITS } from "@/lib/billing";
-import { MESSAGES, errorMessage, planLimitMessage, segmentFieldLabel, segmentUsageLabel } from "@/lib/messages";
+import { MESSAGES, errorMessage, planLimitMessage, segmentFieldLabel, segmentPlaceholder, segmentUsageLabel } from "@/lib/messages";
 import { formatDuration, totalPlannedMs } from "@/lib/timer";
 import { parseClock, timerInputSchema } from "@/lib/validation";
 import { api } from "@/services/api";
@@ -20,7 +20,7 @@ import { LimitNotice } from "./LimitNotice";
 let creationNoticeId: string | null = null;
 
 const copy = MESSAGES.timers;
-const segmentGrid = "grid grid-cols-[28px_minmax(0,1fr)_96px_36px] items-center gap-2";
+const segmentGrid = "grid grid-cols-[44px_minmax(0,1fr)_96px_44px] items-center gap-2";
 
 export function TimerEditor({ timerId }: { timerId?: string }) {
   const router = useRouter();
@@ -213,10 +213,10 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
                     <div className={segmentGrid}>
                       <button type="button" data-grip={segment.id} aria-label={segmentFieldLabel(index, "reorder")}
                         onPointerDown={(e) => startDrag(e, index)} onKeyDown={(e) => moveWithKey(e, index, segment.id)}
-                        className="focus-ring flex h-11 cursor-grab touch-none items-center justify-center rounded-md text-muted active:cursor-grabbing">
+                        className="focus-ring flex size-11 cursor-grab touch-none items-center justify-center rounded-md text-muted active:cursor-grabbing">
                         <Icon name="grip" size={18} />
                       </button>
-                      <input aria-label={segmentFieldLabel(index, "name")} className="field" placeholder={`${copy.segments} ${index + 1}`} value={segment.name}
+                      <input aria-label={segmentFieldLabel(index, "name")} className="field" placeholder={segmentPlaceholder(index)} value={segment.name}
                         onChange={(e) => updateSegment(segment.id, "name", e.target.value)}
                         aria-invalid={!!fields[nameKey]} aria-describedby={fields[nameKey] ? fieldId(`${nameKey}-error`) : undefined} />
                       <input aria-label={segmentFieldLabel(index, "clock")} className="field text-right tabular-nums" placeholder={copy.clockPlaceholder} value={segment.clock}
@@ -224,13 +224,13 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
                         aria-invalid={!!fields[clockKey]} aria-describedby={fields[clockKey] ? fieldId(`${clockKey}-error`) : undefined} />
                       <button type="button" aria-label={segmentFieldLabel(index, "remove")}
                         onClick={() => { clearFeedback(); setForm({ ...form, segments: form.segments.filter((s) => s.id !== segment.id) }); }}
-                        className="focus-ring flex h-11 items-center justify-center rounded-md text-muted hover:text-white">
+                        className="focus-ring flex size-11 items-center justify-center rounded-md text-muted hover:text-white">
                         <Icon name="x" size={18} />
                       </button>
                     </div>
-                    {(fields[nameKey] || fields[clockKey]) && <p className="pl-9 text-[13px] text-red-400">
+                    {(fields[nameKey] || fields[clockKey]) && <p className="pl-13 text-[13px] text-red-400">
                       {fields[nameKey] && <span id={fieldId(`${nameKey}-error`)}>{fields[nameKey]}</span>}
-                      {fields[nameKey] && fields[clockKey] && " · "}
+                      {fields[nameKey] && fields[clockKey] && MESSAGES.common.separator}
                       {fields[clockKey] && <span id={fieldId(`${clockKey}-error`)}>{fields[clockKey]}</span>}
                     </p>}
                   </li>;

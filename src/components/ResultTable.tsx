@@ -1,8 +1,8 @@
 import { diffLabel, MESSAGES } from "@/lib/messages";
 import { formatDuration, resultTotals } from "@/lib/timer";
 import type { SegmentResult } from "@/types/timer";
+import { verdictColor } from "./verdictColor";
 
-const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
 const copy = MESSAGES.results;
 
 export function ResultTable({ results }: { results: SegmentResult[] }) {

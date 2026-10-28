@@ -3,8 +3,7 @@ import { formatClock, isOvertime } from "@/lib/timer";
 import type { TimerView } from "@/types/run";
 import type { Segment } from "@/types/timer";
 import { TimelineBar } from "./TimelineBar";
-
-const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
+import { verdictColor } from "./verdictColor";
 
 export function TimerFace({ segments, view }: { segments: Segment[]; view: TimerView }) {
   return (

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ErrorCode } from "@/types/api";
 import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
-import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, segmentCountLabel, segmentUsageLabel, progressLabel, nextSegmentLabel, lastResultLabel, seatLabel, seatCountLabel, viewerFullLabel, recordDateLabel, recordCountLabel, recordTotalsLabel, averageCaption, resultSummaryLabel } from "./messages";
+import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, segmentCountLabel, segmentUsageLabel, segmentPlaceholder, progressLabel, nextSegmentLabel, lastResultLabel, seatLabel, seatCountLabel, seatsFullLabel, savedLabel, viewerFullLabel, recordDateLabel, recordCountLabel, recordTotalsLabel, averageCaption, resultSummaryLabel } from "./messages";
 
 describe("messages", () => {
   it("provides billing screen copy from shared product constants", () => {
@@ -36,6 +36,13 @@ describe("messages", () => {
     expect(seatLabel(2, 3)).toBe("접속 2/3명");
     expect(seatCountLabel(2, 3)).toBe("2/3");
     expect(MESSAGES.share).toMatchObject({ hostName: "발표자", hostSelf: "나 (발표자)", create: "공유 링크 만들기", copy: "복사", copied: "복사됨", full: "자리가 가득 찼어요", passSeats: "30일권은 10명까지 함께 볼 수 있어요", disconnected: "공유 연결 끊김" });
+    expect(seatsFullLabel(true)).toBe("자리가 가득 찼어요 · 30일권은 10명까지 함께 볼 수 있어요");
+    expect(seatsFullLabel(false)).toBe("자리가 가득 찼어요");
+  });
+  it("joins a saved record note with the new-link reminder only after sharing", () => {
+    expect(MESSAGES.common.separator).toBe(" · ");
+    expect(savedLabel(true)).toBe("기록에 저장했어요 · 다시 하면 새 공유 링크가 필요해요");
+    expect(savedLabel(false)).toBe("기록에 저장했어요");
   });
   it("provides the presenter run controls and persistence messages", () => {
     expect(MESSAGES.run).toMatchObject({
@@ -67,6 +74,7 @@ describe("messages", () => {
     expect(segmentFieldLabel(1, "clock")).toBe("구간 2 시간");
     expect(segmentFieldLabel(2, "reorder")).toBe("구간 3 순서 변경");
     expect(segmentFieldLabel(3, "remove")).toBe("구간 4 삭제");
+    expect(segmentPlaceholder(0)).toBe("구간 1");
   });
 
   it("provides the app shell copy and structured policy drafts", () => {

@@ -1,8 +1,7 @@
 import { diffLabel, MESSAGES } from "@/lib/messages";
 import { formatDuration } from "@/lib/timer";
 import type { AverageRow } from "@/types/timer";
-
-const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
+import { verdictColor } from "./verdictColor";
 
 export function AverageTable({ rows }: { rows: AverageRow[] }) {
   return (

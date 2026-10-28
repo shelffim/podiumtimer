@@ -1,7 +1,7 @@
 import { diffLabel, MESSAGES } from "@/lib/messages";
 import type { AverageRow } from "@/types/timer";
+import { verdictColor } from "./verdictColor";
 
-const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
 const grid = "grid grid-cols-[minmax(0,88px)_minmax(0,1fr)_64px] items-center gap-2.5 md:grid-cols-[minmax(0,160px)_minmax(0,1fr)_80px]";
 
 export function AverageDiffChart({ rows }: { rows: AverageRow[] }) {
