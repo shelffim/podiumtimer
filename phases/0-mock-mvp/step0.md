@@ -7,7 +7,7 @@
 - `/AGENTS.md`
 - `/docs/ARCHITECTURE.md` (기술 스택, 디렉토리 구조, 환경 변수, 배포와 DB 반영, 테스트)
 - `/docs/ADR.md` (ADR-001, ADR-012, ADR-013, ADR-014, ADR-015)
-- `/docs/UI_GUIDE.md` (색상의 배경·텍스트, 타이포그래피의 글꼴)
+- `/docs/DESIGN.md` (색상의 배경·텍스트, 타이포그래피의 글꼴)
 - `/.gitignore`
 - `/scripts/hooks/tdd-guard.sh` (어떤 파일이 테스트 없이 만들 수 있는지)
 - `/.codex/hooks.json` (작업 종료 시 `npm run lint && npm run build && npm run test`가 실행된다)
@@ -78,7 +78,7 @@ git diff --quiet -- AGENTS.md CLAUDE.md docs scripts .claude .codex   # 기존 �
 - `AGENTS.md`, `CLAUDE.md`, `docs/`, `scripts/`, `.claude/`, `.codex/`를 수정하지 마라. 이유: 실행기 가드레일과 기획 기준이다. `.gitignore`는 항목을 지우지 마라(추가만 허용).
 - Supabase·Polar SDK(`@supabase/*`, `@polar-sh/*`)와 `supabase` CLI를 설치하지 마라. 이유: 다음 phase(1-supabase, 2-polar) 범위다.
 - UI 컴포넌트 라이브러리, 차트, 아이콘 패키지, 상태 관리, 날짜 라이브러리를 설치하지 마라. 이유: ADR 기술 스택 밖이다. 그래프는 `div`, 아이콘은 인라인 SVG로 그린다.
-- `next/font`를 포함해 웹폰트를 불러오지 마라. 이유: UI_GUIDE는 시스템 글꼴만 쓴다.
+- `next/font`를 포함해 웹폰트를 불러오지 마라. 이유: DESIGN.md는 시스템 글꼴만 쓴다.
 - `package.json`에 `engines`로 Node 버전을 고정하지 마라. 이유: 로컬 Node(26)와 Vercel 빌드 Node가 달라 배포가 실패할 수 있다.
 - `npm run deploy`나 `vercel` 명령(`vercel --version` 제외)을 실행하지 마라. 이유: 배포는 step 13에서만 한다.
 - `.env`를 열거나 출력하거나 고치지 마라. 이유: 비밀 키가 들어갈 파일이다.

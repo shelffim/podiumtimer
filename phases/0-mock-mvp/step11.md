@@ -7,7 +7,7 @@
 - `/AGENTS.md`
 - `/docs/PRD.md` ("결과와 기록", "흐름 B ②")
 - `/docs/ARCHITECTURE.md` (핵심 규칙 R2·R3, 기술 스택의 그래프)
-- `/docs/UI_GUIDE.md` ("평균 차이 막대그래프", "결과 표", "기록", "레이아웃")
+- `/docs/DESIGN.md` ("평균 차이 막대그래프", "결과 표", "기록", "레이아웃")
 - `/src/types/timer.ts`
 - `/src/lib/stats.ts`, `/src/lib/timer.ts`, `/src/lib/messages.ts`
 - `/src/services/api/index.ts`, `/src/services/api/mock.ts`
@@ -65,7 +65,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가? (차트 라이브러리 없음)
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (평균은 `averageRecords`만)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"`
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`

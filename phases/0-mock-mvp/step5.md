@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("화면", "흐름 A", "로그인과 공유", "결제", "디자인")
 - `/docs/ARCHITECTURE.md` (핵심 규칙 R1·R2, 디렉토리 구조, "보안 규칙", "에러 처리", "mock 모드", 환경 변수 `CONTACT_EMAIL`)
 - `/docs/ADR.md` (ADR-003, ADR-012, ADR-014, ADR-016)
-- `/docs/UI_GUIDE.md` (전체)
+- `/docs/DESIGN.md` (전체)
 - `/src/app/layout.tsx`, `/src/app/page.tsx`, `/src/app/globals.css`
 - `/src/services/api/index.ts`, `/src/services/api/mock.ts`
 - `/src/lib/messages.ts`, `/src/lib/validation.ts` (`safeReturnTo`)
@@ -35,7 +35,7 @@ TDD: `src/components/`의 컴포넌트마다 옆에 `*.test.tsx`를 먼저 만�
   - 버튼 문구: mock이면 "체험 계정으로 로그인", live면 "Google로 로그인". 누르면 `api.signIn(next)` 뒤 `router.push(safeReturnTo(next, '/timers'))`.
   - 버튼 아래 "만 14세 이상 이용할 수 있어요"와 이용약관·개인정보처리방침 링크.
   - 이미 로그인했으면 `router.replace(safeReturnTo(next, '/timers'))`.
-  - 마케팅 장식, 미리보기, 그라데이션을 넣지 않는다(UI_GUIDE 원칙 3, PRD MVP 제외 "랜딩 화면 미리보기").
+  - 마케팅 장식, 미리보기, 그라데이션을 넣지 않는다(DESIGN.md 원칙 3, PRD MVP 제외 "랜딩 화면 미리보기").
 
 ### 3. 페이지
 - `src/app/page.tsx`: `PageShell` + `Landing`. `searchParams`의 `next`를 prop으로 넘긴다(클라이언트에서 `useSearchParams`를 쓰지 마라 — 빌드 때 Suspense 경계 에러가 난다). 설치된 Next 버전이 `searchParams`를 Promise로 주면 `await`한다.
@@ -49,7 +49,7 @@ TDD: `src/components/`의 컴포넌트마다 옆에 `*.test.tsx`를 먼저 만�
 - 본문에 이메일 주소를 직접 쓰지 말고 "하단 문의 이메일"이라고 쓴다. 이유: 주소는 환경변수로만 넣는다.
 
 ### 5. 스타일
-UI_GUIDE의 버튼·패널·포커스 클래스를 그대로 쓴다. 모서리는 `rounded-md`. 터치 대상 최소 44×44px.
+DESIGN.md의 버튼·패널·포커스 클래스를 그대로 쓴다. 모서리는 `rounded-md`. 터치 대상 최소 44×44px.
 
 ## Acceptance Criteria
 
@@ -68,7 +68,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가?
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (화면은 `services/api`만 부름, 문구는 messages)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"` (만든 공통 컴포넌트와 props)
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`
@@ -79,7 +79,7 @@ npm test        # 테스트 통과
 - 컴포넌트에 문구를 직접 쓰지 마라. 이유: 모든 문구는 `src/lib/messages.ts`에 모은다(서비스 이름 `Podium Timer`도 messages에 둔다).
 - 문의 이메일이나 다른 개인 정보를 코드·문구에 직접 쓰지 마라. 이유: `CONTACT_EMAIL` 환경변수로만 넣는다.
 - `proxy.ts`(또는 middleware)를 만들지 마라. 이유: live 보호 경로는 다음 phase에서 만든다. mock은 `RequireAuth`가 처리한다.
-- `backdrop-blur`, 그라데이션 텍스트, 글로우, 보라/인디고, 라이트 모드 버튼을 쓰지 마라. 이유: UI_GUIDE 안티패턴이다.
+- `backdrop-blur`, 그라데이션 텍스트, 글로우, 보라/인디고, 라이트 모드 버튼을 쓰지 마라. 이유: DESIGN.md 안티패턴이다.
 - 계정 화면, 로그인 전 데모, 영어 전환을 만들지 마라. 이유: PRD MVP 제외 사항이다.
 - `dangerouslySetInnerHTML`을 쓰지 마라. 이유: ARCHITECTURE 보안 규칙이다.
 - `AGENTS.md`, `CLAUDE.md`, `docs/`, `scripts/`, `.claude/`, `.codex/`를 수정하지 마라. 이유: 실행기 가드레일과 기획 기준이다.

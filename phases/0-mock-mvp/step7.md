@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("페이스 표시와 계산", "결과와 기록")
 - `/docs/ARCHITECTURE.md` ("실행 상태")
 - `/docs/ADR.md` (ADR-004)
-- `/docs/UI_GUIDE.md` (전체, 특히 "타이머 화면", "타임라인 바", "결과 표", "타이포그래피", "애니메이션")
+- `/docs/DESIGN.md` (전체, 특히 "타이머 화면", "타임라인 바", "결과 표", "타이포그래피", "애니메이션")
 - `/src/types/timer.ts`, `/src/types/run.ts`
 - `/src/lib/timer.ts`, `/src/lib/messages.ts`
 
@@ -81,7 +81,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가? (차트 라이브러리 없음)
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (시간 계산은 `src/lib/timer.ts`만)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"` (컴포넌트 이름과 props)
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`
@@ -90,8 +90,8 @@ npm test        # 테스트 통과
 ## 금지사항
 
 - 컴포넌트 안에서 시간·판정을 계산하지 마라. 이유: `computeTimer`, `formatClock`, `diffLabel` 등 `src/lib` 함수만 쓴다.
-- 깜빡임·펄스·전환 애니메이션을 넣지 마라. 이유: 발표자 시선을 뺏는다(UI_GUIDE 애니메이션).
-- 빠름에 초록색을 쓰지 마라. 비례폭 숫자를 쓰지 마라. 타이머 화면 배경을 칠하지 마라. 이유: UI_GUIDE 안티패턴이다.
+- 깜빡임·펄스·전환 애니메이션을 넣지 마라. 이유: 발표자 시선을 뺏는다(DESIGN.md 애니메이션).
+- 빠름에 초록색을 쓰지 마라. 비례폭 숫자를 쓰지 마라. 타이머 화면 배경을 칠하지 마라. 이유: DESIGN.md 안티패턴이다.
 - 누적 차이, 계획 대비 위치 표시를 만들지 마라. 이유: PRD MVP 제외 사항이다.
 - `services/api`나 `services/realtime`을 부르지 마라. 이유: 표시 전용 컴포넌트다.
 - 컴포넌트에 문구를 직접 쓰지 마라. 이유: `src/lib/messages.ts`에 모은다.

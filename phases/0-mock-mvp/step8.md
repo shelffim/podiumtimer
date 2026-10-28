@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("타이머 동작", "결과와 기록", "흐름 B", "흐름 F", "예외 상황")
 - `/docs/ARCHITECTURE.md` (핵심 규칙 R6·R7, "실행 상태", "데이터 흐름", "에러 처리")
 - `/docs/ADR.md` (ADR-005)
-- `/docs/UI_GUIDE.md` ("타이머 화면", "결과 표", "조작 입력", "애니메이션", "레이아웃")
+- `/docs/DESIGN.md` ("타이머 화면", "결과 표", "조작 입력", "애니메이션", "레이아웃")
 - `/src/types/run.ts`, `/src/types/timer.ts`
 - `/src/lib/timer.ts`, `/src/lib/messages.ts`
 - `/src/services/api/index.ts`, `/src/services/api/device.ts`, `/src/services/api/mock.ts`
@@ -98,7 +98,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가?
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (상태 전이·시간 계산은 `src/lib/timer.ts`만, 데이터는 `services/api`만)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"` (RunScreen 구조와 step 9가 공유 UI를 붙일 위치)
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`

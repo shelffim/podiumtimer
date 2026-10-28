@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("정책"의 플랜·결제·입력 범위, "결과와 기록"의 평균)
 - `/docs/ARCHITECTURE.md` ("인터페이스 (형태만)", "공유 동기화"의 입장 판정·시각 보정, "보안 규칙"의 returnTo, "테스트")
 - `/docs/ADR.md` (ADR-008, ADR-010, ADR-011)
-- `/docs/UI_GUIDE.md` ("문구")
+- `/docs/DESIGN.md` ("문구")
 - `/src/types/timer.ts`, `/src/types/run.ts`, `/src/types/share.ts`, `/src/types/api.ts`
 - `/src/lib/timer.ts`, `/src/lib/timer.test.ts`
 

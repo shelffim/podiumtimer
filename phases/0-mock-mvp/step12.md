@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("플랜", "결제", "화면", "흐름 E. 결제와 플랜")
 - `/docs/ARCHITECTURE.md` ("결제", "API 라우트"의 checkout, "보안 규칙"의 returnTo, "mock 모드")
 - `/docs/ADR.md` (ADR-009, ADR-010, ADR-011)
-- `/docs/UI_GUIDE.md` (레이아웃, 버튼, 안내, 문구)
+- `/docs/DESIGN.md` (레이아웃, 버튼, 안내, 문구)
 - `/src/types/api.ts`
 - `/src/lib/billing.ts`, `/src/lib/validation.ts` (`safeReturnTo`), `/src/lib/messages.ts`
 - `/src/services/api/index.ts`, `/src/services/api/mock.ts` (`startCheckout`, `getPlanStatus`)
@@ -60,7 +60,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가? (`src/app/pricing/`, `src/app/billing/success/`)
    - ADR 기술 스택을 벗어나지 않았는가?
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (결제 후 돌아오는 주소로 아무것도 부여하지 않음, mock 가짜 결제만 예외)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"`
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`

@@ -5,7 +5,7 @@
 - 제품 요구·정책: `docs/PRD.md`
 - 구조·인터페이스·DB·보안: `docs/ARCHITECTURE.md`
 - 결정 근거: `docs/ADR.md`
-- 화면 규칙: `docs/UI_GUIDE.md`
+- 화면 규칙: `docs/DESIGN.md`
 
 ## 기술 스택
 - Next.js (App Router) + TypeScript strict mode

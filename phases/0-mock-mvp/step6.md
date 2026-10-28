@@ -7,7 +7,7 @@
 - `/AGENTS.md`
 - `/docs/PRD.md` ("핵심 기능" 1, "플랜", "입력 범위", "화면", "흐름 A", "흐름 B ①", "흐름 E", "예외 상황")
 - `/docs/ARCHITECTURE.md` (핵심 규칙 R1·R2·R3, "서버 액션"의 에러 코드)
-- `/docs/UI_GUIDE.md` (전체, 특히 입력 필드·안내·레이아웃·문구)
+- `/docs/DESIGN.md` (전체, 특히 입력 필드·안내·레이아웃·문구)
 - `/src/types/timer.ts`, `/src/types/api.ts`
 - `/src/lib/validation.ts`, `/src/lib/billing.ts`, `/src/lib/timer.ts`, `/src/lib/messages.ts`
 - `/src/services/api/index.ts`, `/src/services/api/mock.ts`
@@ -68,7 +68,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가?
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (화면은 `services/api`만, 검사·한도는 `src/lib`, 문구는 messages)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"`
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`
@@ -79,7 +79,7 @@ npm test        # 테스트 통과
 - 한도 숫자나 입력 범위를 컴포넌트에 다시 쓰지 마라. 이유: `LIMITS`, `checkTimerLimit`, `timerInputSchema`가 유일한 규칙이다.
 - [새 타이머]·[구간 추가] 버튼을 숨기거나 비활성화하지 마라. 이유: 한도 도달 순간이 결제 안내 지점이다(PRD 정책).
 - 템플릿, 타이머 복제, 발표/토론 모드, 발언자·팀 구분을 만들지 마라. 이유: PRD MVP 제외 사항이다.
-- 모달을 만들지 마라. 이유: 안내는 화면 안 안내 박스, 확인은 브라우저 `confirm()`만 쓴다(UI_GUIDE).
+- 모달을 만들지 마라. 이유: 안내는 화면 안 안내 박스, 확인은 브라우저 `confirm()`만 쓴다(DESIGN.md).
 - 컴포넌트에 문구를 직접 쓰지 마라. 이유: `src/lib/messages.ts`에 모은다.
 - `AGENTS.md`, `CLAUDE.md`, `docs/`, `scripts/`, `.claude/`, `.codex/`를 수정하지 마라. 이유: 실행기 가드레일과 기획 기준이다.
 - 기존 테스트를 깨뜨리지 마라

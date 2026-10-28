@@ -8,7 +8,7 @@
 - `/docs/PRD.md` ("로그인과 공유", "결과와 기록", "흐름 D. 시청자 입장", "예외 상황")
 - `/docs/ARCHITECTURE.md` (핵심 규칙 R9·R10, "데이터 흐름", "공유 동기화", "에러 처리"의 시청자 페이지 동적 렌더링)
 - `/docs/ADR.md` (ADR-003, ADR-007, ADR-008)
-- `/docs/UI_GUIDE.md` ("시청자 화면", "타이머 화면", "결과 표", "레이아웃")
+- `/docs/DESIGN.md` ("시청자 화면", "타이머 화면", "결과 표", "레이아웃")
 - `/src/types/share.ts`, `/src/types/run.ts`
 - `/src/lib/seats.ts`, `/src/lib/timer.ts`, `/src/lib/validation.ts`, `/src/lib/messages.ts`
 - `/src/services/api/index.ts`, `/src/services/api/device.ts`, `/src/services/realtime.ts`
@@ -82,7 +82,7 @@ npm test        # 테스트 통과
    - ARCHITECTURE.md 디렉토리 구조를 따르는가?
    - ADR 기술 스택을 벗어나지 않았는가?
    - AGENTS.md CRITICAL 규칙을 위반하지 않았는가? (`changed`는 재조회 계기로만, 판정은 `admit`, 계산은 `computeTimer`)
-   - UI_GUIDE.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
+   - DESIGN.md 규칙(색·글꼴·모서리·아이콘·문구)을 따르는가?
 3. 결과에 따라 `phases/0-mock-mvp/index.json`의 해당 step을 업데이트한다:
    - 성공 → `"status": "completed"`, `"summary": "산출물 한 줄 요약"`
    - 수정 3회 시도 후에도 실패 → `"status": "error"`, `"error_message": "구체적 에러 내용"`
