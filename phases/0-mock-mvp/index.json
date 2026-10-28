@@ -2,19 +2,119 @@
   "project": "Podium Timer",
   "phase": "0-mock-mvp",
   "steps": [
-    { "step": 0, "name": "project-setup", "status": "pending" },
-    { "step": 1, "name": "timer-core", "status": "pending" },
-    { "step": 2, "name": "lib-rules", "status": "pending" },
-    { "step": 3, "name": "api-mock", "status": "pending" },
-    { "step": 4, "name": "realtime-mock", "status": "pending" },
-    { "step": 5, "name": "app-shell", "status": "pending" },
-    { "step": 6, "name": "timers-screens", "status": "pending" },
-    { "step": 7, "name": "timer-face", "status": "pending" },
-    { "step": 8, "name": "run-screen", "status": "pending" },
-    { "step": 9, "name": "share-host", "status": "pending" },
-    { "step": 10, "name": "viewer-screen", "status": "pending" },
-    { "step": 11, "name": "records-screen", "status": "pending" },
-    { "step": 12, "name": "billing-screens", "status": "pending" },
-    { "step": 13, "name": "deploy-mock", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "project-setup",
+      "status": "completed",
+      "summary": "Next.js 16.4.3 App Router 최소 앱과 Tailwind CSS 4.3.3·zod 4.6.7·Vitest 5.0.5 설정, ESLint 9.39.5(eslint .), Vercel CLI 65.4.0 고정 및 환경변수 없는 빌드를 포함한 AC 검증을 완료했어요.",
+      "started_at": "2026-10-28T00:07:24+0900",
+      "completed_at": "2026-10-28T00:12:06+0900"
+    },
+    {
+      "step": 1,
+      "name": "timer-core",
+      "status": "completed",
+      "summary": "src/types/{timer,run,share,api}.ts와 src/lib/timer.ts·timer.test.ts를 만들고 createIdleRun·reduceRun·isStaleRun·computeTimer·buildResult·toSegmentResult·verdictOf·totalPlannedMs·formatClock·isOvertime·formatDuration 및 ON_TIME_TOLERANCE_MS·STALE_RUN_MS를 export했어요. TDD 테스트 67개, lint, 환경변수 없는 build를 통과했어요.",
+      "started_at": "2026-10-28T00:12:06+0900",
+      "completed_at": "2026-10-28T00:15:03+0900"
+    },
+    {
+      "step": 2,
+      "name": "lib-rules",
+      "status": "completed",
+      "summary": "src/lib/{billing,stats,seats,time,messages,validation}.ts와 인접 테스트 6개를 TDD로 만들고 PASS_DAYS·PASS_MS·PASS_PRICE_USD·LIMITS·computeExpiry·planOf·checkTimerLimit·averageRecords·admit·seatUsage·computeOffset·MESSAGES·errorMessage·planLimitMessage·diffLabel·verdictWord·TIMER_NAME_MAX·SEGMENT_NAME_MAX·NICKNAME_MAX·SEGMENT_MIN_SEC·SEGMENT_MAX_SEC·segmentSchema·timerInputSchema·runStateSchema·recordInputSchema·parseClock·sanitizeNickname·nicknameSchema·safeReturnTo를 export했어요. 전체 테스트 171개, lint, 프로젝트 환경변수를 비운 build와 아키텍처 점검을 통과했어요.",
+      "started_at": "2026-10-28T00:15:04+0900",
+      "completed_at": "2026-10-28T00:18:28+0900"
+    },
+    {
+      "step": 3,
+      "name": "api-mock",
+      "status": "completed",
+      "started_at": "2026-10-28T00:18:28+0900",
+      "summary": "Api 인터페이스와 mockApi(getUser·signIn·signOut·listTimers·getTimer·createTimer·updateTimer·deleteTimer·listRecords·saveRecord·deleteRecord·createShare·updateShareState·getShare·getPlanStatus·startCheckout·getServerOffset), JSON 저장 키 mock:user·mock:timers·mock:records·mock:shares·mock:orders, device(loadRun·saveRun·clearRun·loadNickname·saveNickname·getClientId·hasJoined·markJoined; run:{timerId}·nickname·clientId·joined:{code}), localRunSchema와 mock 고정 api·dataMode를 구현했어요. TDD 신규 58개 포함 전체 테스트 229개, lint, 프로젝트 환경변수를 비운 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:22:51+0900"
+    },
+    {
+      "step": 4,
+      "name": "realtime-mock",
+      "status": "completed",
+      "summary": "src/services/realtime.ts에 ShareChannel(onChanged·onPresence·track·sendChanged·leave)과 BroadcastChannel mock(changed·presence·leave 메시지, 1회 참가 응답·pagehide 정리·채널 생성 함수 주입)을 구현했어요. TDD 신규 30개 포함 전체 테스트 259개, lint, 프로젝트 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "started_at": "2026-10-28T00:22:51+0900",
+      "completed_at": "2026-10-28T00:26:17+0900"
+    },
+    {
+      "step": 5,
+      "name": "app-shell",
+      "status": "completed",
+      "summary": "MockBadge(mode)·PageShell(children)·Footer(contactEmail?)·RequireAuth(children)·Landing(next?)와 루트 metadata·viewport, 랜딩·약관·개인정보처리방침·에러·404 화면을 구현하고 문구를 messages에 모았어요. TDD 신규 27개 포함 전체 테스트 286개, lint, 프로젝트 환경변수를 비운 build와 아키텍처 점검을 통과했어요.",
+      "started_at": "2026-10-28T00:26:17+0900",
+      "completed_at": "2026-10-28T00:29:57+0900"
+    },
+    {
+      "step": 6,
+      "name": "timers-screens",
+      "status": "completed",
+      "started_at": "2026-10-28T00:29:57+0900",
+      "summary": "타이머 목록·만들기·편집 페이지와 TimerList·TimerEditor를 구현하고 플랜·한도 안내, 필드별 입력 오류, 구간 순서 변경·삭제, 저장 후 리허설 안내 및 삭제 확인을 추가했어요. 실제 mock API 기반 TDD 신규 25개 포함 전체 테스트 311개, lint, 프로젝트 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:35:37+0900"
+    },
+    {
+      "step": 7,
+      "name": "timer-face",
+      "status": "completed",
+      "started_at": "2026-10-28T00:35:38+0900",
+      "summary": "표시 전용 TimerFace(segments·view·finishHint?)·TimelineBar(segments·segmentIndex·progressMs·done?)·ResultTable(results)·SegmentList(segments)와 useNow(offsetMs·active), progressLabel 및 lib의 타임라인 표시 계산을 TDD로 구현했어요. 신규 25개 포함 전체 테스트 336개, lint, 프로젝트 환경값을 비운 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:39:33+0900"
+    },
+    {
+      "step": 8,
+      "name": "run-screen",
+      "status": "completed",
+      "started_at": "2026-10-28T00:39:33+0900",
+      "summary": "RunScreen(대기·진행·종료·중단)과 useAdvanceInput·useWakeLock을 TDD로 구현하고 복원·3초 종료 확인·기록 1회 저장/재시도를 검증했어요. Step 9 공유 UI는 대기의 SegmentList 아래와 진행 상단 header에, 상태 동기화는 persist에 붙일 수 있어요. 신규 36개 포함 전체 테스트 372개, lint, 프로젝트 환경변수를 비운 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:45:07+0900"
+    },
+    {
+      "step": 9,
+      "name": "share-host",
+      "status": "completed",
+      "started_at": "2026-10-28T00:45:07+0900",
+      "summary": "useShareHost·ShareHostPanel과 RunScreen 공유 연결을 TDD로 구현하고 링크 생성·복사, Presence 접속자·자리 가득 안내, 시작 정보 복원·인원 한도 유지, 최신 상태 단일 저장·지수 재시도·복귀 동기화·채널 정리를 검증했어요. 신규 24개 포함 전체 테스트 396개, lint, 프로젝트 환경변수를 비운 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:49:44+0900"
+    },
+    {
+      "step": 10,
+      "name": "viewer-screen",
+      "status": "completed",
+      "started_at": "2026-10-28T00:49:44+0900",
+      "summary": "/s/[code] 동적 페이지와 useShareViewer·ViewerScreen을 TDD로 구현하고 닉네임 자동 재입장, 대기·진행·결과·중단, 단일 조회·신호 묶음·10초 재조회·지수 재시도, Presence 입장 판정·인원 초과 퇴장·정리를 검증했어요. 신규 31개 포함 전체 테스트 427개, lint, 환경변수 없는 build와 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:54:44+0900"
+    },
+    {
+      "step": 11,
+      "name": "records-screen",
+      "status": "completed",
+      "started_at": "2026-10-28T00:54:44+0900",
+      "summary": "/timers/[id]/records 페이지와 RecordsView·AverageTable·AverageDiffChart를 TDD로 구현하고 최신순 기록 펼치기/접기·삭제 확인·같은 구성 평균 및 삭제 후 재계산·막대 방향/색/비율을 검증했어요. 신규 16개 포함 전체 테스트 443개, lint, 프로젝트 환경변수와 .env 없는 build 및 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T00:58:38+0900"
+    },
+    {
+      "step": 12,
+      "name": "billing-screens",
+      "status": "completed",
+      "started_at": "2026-10-28T00:58:38+0900",
+      "summary": "/pricing·/billing/success 페이지와 PricingView·BillingSuccess를 TDD로 구현하고 플랜 비교·가짜 결제/연장·안전한 복귀 경로·읽기 전용 최대 10회 확인·지연 안내/타이머 정리를 검증했어요. 신규 25개 포함 전체 테스트 468개, lint, 환경변수와 .env 없는 build 및 아키텍처 점검을 통과했어요.",
+      "completed_at": "2026-10-28T01:02:23+0900"
+    },
+    {
+      "step": 13,
+      "name": "deploy-mock",
+      "status": "completed",
+      "started_at": "2026-10-28T01:02:23+0900",
+      "summary": "Vercel 프로젝트 shelffim/podiumtimer를 npm run deploy로 mock 1차 운영 배포했어요(https://podiumtimer.vercel.app, READY, 함수 리전 icn1). lint·build·테스트 468개와 운영 HTTP 200·서버 HTML MOCK 모드·frame-ancestors none 헤더를 검증하고 .env의 NEXT_PUBLIC_SITE_URL 한 줄만 갱신했어요. 코드 수정은 없고 GitHub 자동 연결은 로그인 연결 부족으로 실패했지만 CLI 배포는 성공했어요.",
+      "completed_at": "2026-10-28T01:04:36+0900"
+    }
+  ],
+  "created_at": "2026-10-28T00:07:24+0900",
+  "completed_at": "2026-10-28T01:04:37+0900"
 }
