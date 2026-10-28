@@ -46,11 +46,18 @@ describe("Landing", () => {
     await waitFor(() => expect(navigation.push).toHaveBeenCalledWith("/timers"));
   });
 
-  it("shows the service, mock login, age notice and policy links", async () => {
+  it("shows the headline, preview, features, mock login, age notice and policy links", async () => {
     render(<Landing />);
-    expect(screen.getByRole("heading", { name: MESSAGES.serviceName })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: MESSAGES.serviceName })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("heading", { level: 1, name: MESSAGES.landing.headline })).toBeInTheDocument();
     expect(screen.getByText(MESSAGES.landing.description)).toBeInTheDocument();
-    expect(screen.getByText(MESSAGES.landing.minimumAge)).toBeInTheDocument();
+    expect(screen.getByText(/만 14세 이상 · 계속하면/)).toBeInTheDocument();
+    expect(screen.getByText("1:24").closest("[aria-hidden]")).not.toBeNull();
+    expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400");
+    for (const feature of MESSAGES.landing.features) {
+      expect(screen.getByRole("heading", { name: feature.title })).toBeInTheDocument();
+      expect(screen.getByText(feature.body)).toBeInTheDocument();
+    }
     expect(screen.getByRole("link", { name: MESSAGES.terms.title })).toHaveAttribute("href", "/terms");
     expect(screen.getByRole("link", { name: MESSAGES.privacy.title })).toHaveAttribute("href", "/privacy");
     await waitFor(() => expect(screen.getByRole("button", { name: MESSAGES.landing.mockSignIn })).toBeEnabled());

@@ -13,6 +13,7 @@ import {
   timelineLayout,
   isStaleRun,
   reduceRun,
+  resultTotals,
   toSegmentResult,
   totalPlannedMs,
   verdictOf,
@@ -162,6 +163,22 @@ describe("segment results", () => {
 
   it("calculates the first actual duration with an epoch-zero start", () => {
     expect(buildResult(segments, { ...running([12_000]), startedAt: 0 })[0].actualMs).toBe(12_000);
+  });
+});
+
+describe("resultTotals", () => {
+  it("sums planned and actual times and judges the whole run with the shared boundary", () => {
+    const results = [
+      toSegmentResult({ name: "도입", plannedMs: 60_000, actualMs: 72_000 }),
+      toSegmentResult({ name: "결론", plannedMs: 30_000, actualMs: 29_000 }),
+    ];
+    expect(resultTotals(results)).toEqual({ plannedMs: 90_000, actualMs: 101_000, diffMs: 11_000, verdict: "late" });
+    expect(resultTotals([{ name: "도입", plannedMs: 60_000, actualMs: 61_000 }]).verdict).toBe("on_time");
+    expect(resultTotals([{ name: "도입", plannedMs: 60_000, actualMs: 50_000 }]).verdict).toBe("early");
+  });
+
+  it("returns zero totals for no results", () => {
+    expect(resultTotals([])).toEqual({ plannedMs: 0, actualMs: 0, diffMs: 0, verdict: "on_time" });
   });
 });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RunRecord, SegmentTime, Timer } from "@/types/timer";
-import { averageRecords } from "./stats";
+import { averageRecords, matchingRecords } from "./stats";
 
 const timer: Timer = { id: "timer", name: "발표", segments: [
   { id: "a", name: "도입", durationSec: 5 },
@@ -9,6 +9,14 @@ const timer: Timer = { id: "timer", name: "발표", segments: [
 const record = (segments: SegmentTime[]): RunRecord => ({ id: "record", timerId: timer.id, startedAt: 0, segments });
 const first = record([{ name: "도입", plannedMs: 5_000, actualMs: 7_001 }, { name: "본론", plannedMs: 10_000, actualMs: 8_000 }]);
 const second = record([{ name: "도입", plannedMs: 5_001, actualMs: 7_001 }, { name: "본론", plannedMs: 12_000, actualMs: 10_000 }]);
+
+describe("matchingRecords", () => {
+  it("keeps only records with the timer's segment count and name order", () => {
+    const renamed = record([{ name: "도입", plannedMs: 5_000, actualMs: 5_000 }, { name: "결론", plannedMs: 10_000, actualMs: 10_000 }]);
+    const shorter = record([{ name: "도입", plannedMs: 5_000, actualMs: 5_000 }]);
+    expect(matchingRecords(timer, [first, renamed, second, shorter])).toEqual([first, second]);
+  });
+});
 
 describe("averageRecords", () => {
   it("requires at least two matching records", () => {

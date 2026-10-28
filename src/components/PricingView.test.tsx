@@ -29,25 +29,22 @@ beforeEach(async () => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe("PricingView", () => {
-  it("compares all five benefits using the shared limits and price", async () => {
+  it("shows free and pass tiers using the shared limits and price", async () => {
     render(<PricingView returnTo="/timers/new" />);
-    expect(await screen.findByText("무료", { selector: "p" })).toBeInTheDocument();
-    const table = screen.getByRole("table");
-    const rows = within(table).getAllByRole("row");
-    expect(rows).toHaveLength(6);
-    expect(within(rows[0]).getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["항목", "무료", "30일권"]);
-    const expected = [
-      ["타이머 수", `${LIMITS.free.timers}개`, LIMITS.pass.timers === Infinity ? "무제한" : `${LIMITS.pass.timers}개`],
-      ["타이머 1개당 구간 수", `${LIMITS.free.segments}개`, `${LIMITS.pass.segments}개`],
-      ["공유 동시 접속 (발표자 포함)", `${LIMITS.free.seats}명`, `${LIMITS.pass.seats}명`],
-      ["공유 링크 만들기", "제한 없음", "제한 없음"],
-      ["기록·평균", "제한 없음", "제한 없음"],
-    ];
-    expected.forEach((cells, index) => expect(Array.from(rows[index + 1].children).map((cell) => cell.textContent)).toEqual(cells));
-    expect(screen.getByText(`$${PASS_PRICE_USD}`)).toBeInTheDocument();
-    expect(screen.getByText(`${PASS_DAYS}일 · 자동 갱신 없음`)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "가짜 결제 ($3.99)" })).toBeEnabled();
-    expect(screen.getByRole("link", { name: "돌아가기" })).toHaveAttribute("href", "/timers/new");
+    expect(screen.getByRole("heading", { level: 1, name: "요금제" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: MESSAGES.pricing.headline })).toBeInTheDocument();
+    const free = screen.getByRole("region", { name: "무료" });
+    const pass = screen.getByRole("region", { name: "30일권" });
+    expect(within(free).getByText("$0")).toBeInTheDocument();
+    expect(within(free).getAllByRole("listitem").map((item) => item.textContent)).toEqual([...MESSAGES.pricing.freeFeatures]);
+    expect(within(free).getAllByRole("listitem")[0]).toHaveTextContent(`타이머 ${LIMITS.free.timers}개`);
+    expect(await within(free).findByRole("button", { name: "지금 쓰는 중" })).toBeDisabled();
+    expect(within(pass).getByText(`$${PASS_PRICE_USD}`)).toBeInTheDocument();
+    expect(within(pass).getByText(`/ ${PASS_DAYS}일`)).toBeInTheDocument();
+    expect(within(pass).getAllByRole("listitem").map((item) => item.textContent)).toEqual([...MESSAGES.pricing.passFeatures]);
+    expect(within(pass).getByRole("button", { name: "가짜 결제 ($3.99)" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers/new");
+    expect(screen.getByRole("link", { name: MESSAGES.terms.title })).toHaveAttribute("href", "/terms");
   });
 
   it("passes returnTo to mock checkout, follows its URL, and returns after the pass is reflected", async () => {
@@ -69,7 +66,8 @@ describe("PricingView", () => {
     vi.spyOn(api, "getPlanStatus").mockResolvedValue({ ok: true, data: { plan: "pass", expiresAt: Date.UTC(2026, 10, 24, 15), timerCount: 4 } });
     render(<PricingView returnTo="/timers" />);
     expect(await screen.findByText("30일권 · 11월 25일까지")).toBeInTheDocument();
-    expect(screen.getByText("지금 사면 만료일에 30일이 더해져요")).toBeInTheDocument();
+    expect(screen.getByText(/만료일에 30일을 더해요/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "지금 쓰는 중" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /가짜 결제/ })).toBeEnabled();
   });
 
@@ -84,10 +82,14 @@ describe("PricingView", () => {
     expect(after.data.expiresAt).toBe(before.data.expiresAt! + PASS_MS);
   });
 
-  it("uses the live purchase label when dataMode is live", () => {
+  it("uses the live purchase label when dataMode is live, and the extension label for a pass", async () => {
     settings.mode = "live";
-    render(<PricingView returnTo="/timers" />);
+    const { unmount } = render(<PricingView returnTo="/timers" />);
     expect(screen.getByRole("button", { name: "30일권 구매 $3.99" })).toBeInTheDocument();
+    unmount();
+    vi.spyOn(api, "getPlanStatus").mockResolvedValue({ ok: true, data: { plan: "pass", expiresAt: Date.UTC(2026, 10, 24, 15), timerCount: 4 } });
+    render(<PricingView returnTo="/timers" />);
+    expect(await screen.findByRole("button", { name: "30일 연장 $3.99" })).toBeInTheDocument();
   });
 
   it("shows checkout error codes and lets the user try again", async () => {
@@ -132,7 +134,7 @@ describe("PricingView", () => {
   it.each(["https://example.com", "//example.com", "/\\example.com"])("sanitizes unsafe returnTo %s", async (returnTo) => {
     const checkout = vi.spyOn(api, "startCheckout");
     render(<PricingView returnTo={returnTo} />);
-    expect(screen.getByRole("link", { name: "돌아가기" })).toHaveAttribute("href", "/timers");
+    expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers");
     fireEvent.click(screen.getByRole("button", { name: /가짜 결제/ }));
     await waitFor(() => expect(checkout).toHaveBeenCalledWith("/timers"));
   });

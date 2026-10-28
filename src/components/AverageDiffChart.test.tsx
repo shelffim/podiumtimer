@@ -24,6 +24,9 @@ describe("AverageDiffChart", () => {
     expect(within(rows[2]).getByText("정시")).toBeInTheDocument();
     expect(rows[2].querySelector("[data-bar]")).toBeNull();
     rows.forEach((row) => expect(row.querySelector("[data-baseline]")).toHaveClass("left-1/2", "w-px"));
+    expect(within(rows[0]).getByText("0:12 늦음")).toHaveClass("text-red-400", "tabular-nums");
+    expect(screen.getByText("← 빠름")).toHaveClass("text-blue-400");
+    expect(screen.getByText("늦음 →")).toHaveClass("text-red-400");
   });
 
   it("scales against the largest absolute difference even when it is early", () => {

@@ -1,21 +1,34 @@
 import type { ErrorCode, Plan } from "@/types/api";
 import type { Verdict } from "@/types/timer";
 import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
-import { formatClock, formatDuration, isOvertime, verdictOf } from "./timer";
+import { formatDuration, verdictOf } from "./timer";
 
 export const MESSAGES = {
   serviceName: "Podium Timer",
   mockBadge: "MOCK 모드 · 데이터는 이 브라우저에만 저장돼요",
+  common: {
+    back: "뒤로",
+    cancel: "취소",
+  },
   footer: {
-    contact: "문의 이메일",
     separator: "·",
   },
   landing: {
-    description: "구간마다 계획보다 빨랐는지 늦었는지 알려주는 발표 타이머예요",
-    mockSignIn: "체험 계정으로 로그인",
-    googleSignIn: "Google로 로그인",
-    minimumAge: "만 14세 이상 이용할 수 있어요",
+    headline: "구간마다, 계획보다 빨랐는지 늦었는지.",
+    description: "발표와 토론을 구간으로 나눠 두면, 구간을 넘길 때마다 계획 대비 차이를 바로 보여줘요. 링크로 공유하면 여러 명이 같은 타이머를 봐요.",
+    mockSignIn: "체험 계정으로 시작하기",
+    googleSignIn: "Google로 시작하기",
+    minimumAge: "만 14세 이상",
+    consentLead: "계속하면",
+    consentAnd: "과",
+    consentTail: "에 동의하게 돼요",
     signInFailed: "로그인하지 못했어요. 다시 시도해 주세요",
+    previewSegments: ["인사·소개", "문제 정의", "연구 방법", "결과", "결론", "질의응답"],
+    features: [
+      { title: "구간별 페이스", body: "[다음]을 누를 때마다 직전 구간이 몇 초 늦었는지, 빨랐는지 보여줘요." },
+      { title: "링크로 공유", body: "시청자는 로그인 없이 닉네임만 넣고 같은 타이머를 봐요." },
+      { title: "기록과 평균", body: "연습이 쌓이면 어느 구간에서 시간이 부족한지 평균으로 보여줘요." },
+    ],
   },
   timers: {
     title: "내 타이머",
@@ -26,26 +39,31 @@ export const MESSAGES = {
     signOut: "로그아웃",
     newTimer: "새 타이머",
     firstTimer: "첫 타이머 만들기",
+    emptyTitle: "첫 타이머를 만들어 보세요",
+    emptyDescription: "발표나 토론을 구간으로 나누고 구간마다 계획 시간을 적어요. 예: 찬성 입론 3:00",
     start: "시작",
     edit: "편집",
     records: "기록",
     loading: "불러오고 있어요",
-    createTitle: "타이머 만들기",
+    createTitle: "새 타이머",
     editTitle: "타이머 편집",
     timerName: "타이머 이름",
+    namePlaceholder: "예: 토론 수업 2:2 — 기본소득",
     segments: "구간",
     segmentName: "이름",
     segmentClock: "시간",
+    clockColumn: "시간 (m:ss)",
     clockPlaceholder: "3:00",
-    moveUp: "위로",
-    moveDown: "아래로",
+    reorder: "순서 변경",
     removeSegment: "삭제",
     addSegment: "구간 추가",
     save: "저장",
     saved: "저장했어요",
     rehearse: "바로 리허설 해보기",
     deleteTimer: "타이머 삭제",
-    deleteConfirm: "타이머를 삭제할까요? 기록과 공유 링크도 함께 지워져요",
+    deleteConfirm: "타이머를 삭제할까요?",
+    deleteDescription: "이 타이머의 기록과 공유 링크도 함께 사라져요",
+    delete: "삭제",
     notFound: "타이머를 찾을 수 없어요",
     backToList: "목록으로",
   },
@@ -53,75 +71,115 @@ export const MESSAGES = {
     undo: "되돌리기",
     abort: "중단",
     abortConfirm: "발표를 중단할까요?",
+    abortDescription: "중단한 발표는 기록되지 않아요",
     aborted: "발표를 중단했어요",
+    finished: "발표가 끝났어요",
     restart: "다시 하기",
     records: "기록 보기",
+    editSegments: "구간 고치기",
     noSegments: "구간을 추가해야 시작할 수 있어요",
-    saved: "기록을 저장했어요",
+    saved: "기록에 저장했어요",
+    sharedRestart: "다시 하면 새 공유 링크가 필요해요",
     saveFailed: "기록을 저장하지 못했어요",
     retrySave: "다시 저장",
+    startHint: "진행 중에는 Space(노트북) 또는 화면 탭(폰)으로 다음 구간으로 넘어가요",
+    tapHint: "화면 아무 곳이나 탭하면 다음 구간",
+    next: "다음",
+    finish: "종료",
+    keyHint: "또는",
+    spaceKey: "Space",
   },
   share: {
     hostName: "발표자",
+    hostSelf: "나 (발표자)",
+    title: "공유",
+    createHint: "시청자가 같은 타이머를 보려면 시작 전에 링크를 만들어요",
+    linkHint: "링크를 보내면 시청자가 닉네임만 넣고 들어와요",
     create: "공유 링크 만들기",
     copy: "복사",
-    copied: "복사했어요",
+    copied: "복사됨",
     copyFailed: "복사하지 못했어요. 다시 시도해 주세요",
+    seats: "접속",
+    includesHost: "(발표자 포함)",
     full: "자리가 가득 찼어요",
-    passSeats: `30일권은 ${LIMITS.pass.seats}명까지`,
+    passSeats: `30일권은 ${LIMITS.pass.seats}명까지 함께 볼 수 있어요`,
     disconnected: "공유 연결 끊김",
   },
   viewer: {
+    sharedTimer: "공유된 타이머",
     nickname: "닉네임",
+    nicknamePlaceholder: "다른 사람에게 보이는 이름",
+    nicknameHint: "로그인 없이 볼 수 있어요. 닉네임은 이 기기에 저장돼요",
     enter: "입장",
+    waitingRoom: "대기실",
     waiting: "발표자가 시작하면 자동으로 시작돼요",
     notFound: "존재하지 않는 링크예요",
+    notFoundHint: "링크 주소를 다시 확인해 주세요",
+    fullHint: "자리가 비면 링크를 다시 열어 주세요",
     aborted: "발표가 중단되었어요",
     disconnected: "연결 끊김",
   },
   timerFace: {
     finishHint: "한 번 더 누르면 종료",
     lastResult: "직전 구간",
+    firstSegment: "첫 구간",
     lastSegment: "마지막 구간",
+    totalRemaining: "전체 남은 시간",
   },
   results: {
     segment: "구간",
     planned: "계획",
     actual: "실제",
     difference: "차이",
+    total: "합계",
   },
   records: {
     average: "구간별 평균",
+    averageEmpty: "기록이 2개 이상 쌓이면 구간별 평균을 보여줘요",
     averageActual: "평균 실제",
     averageDifference: "평균 차이",
     averageChart: "평균 차이 막대그래프",
+    earlier: "← 빠름",
+    later: "늦음 →",
     empty: "아직 기록이 없어요",
     emptyDescription: "마지막 구간까지 끝낸 발표가 여기에 쌓여요",
-    delete: "삭제",
-    deleteConfirm: "기록을 삭제할까요?",
+    delete: "이 기록 삭제",
+    deleteConfirm: "이 기록을 삭제할까요?",
+    deleteDescription: "삭제하면 평균에서도 빠져요",
+    confirmDelete: "삭제",
   },
   pricing: {
     title: "요금제",
-    comparison: "플랜 비교",
-    item: "항목",
+    headline: "혼자 연습은 무료, 함께 보는 행사는 30일권",
+    description: `30일권은 계정 전체에 ${PASS_DAYS}일 동안 적용돼요. 자동 갱신은 없어요`,
+    freePrice: "$0",
     price: `$${PASS_PRICE_USD}`,
-    duration: `${PASS_DAYS}일 · 자동 갱신 없음`,
-    extension: `지금 사면 만료일에 ${PASS_DAYS}일이 더해져요`,
+    period: `/ ${PASS_DAYS}일`,
+    current: "지금 쓰는 중",
     mockBuy: `가짜 결제 ($${PASS_PRICE_USD})`,
     buy: `30일권 구매 $${PASS_PRICE_USD}`,
-    back: "돌아가기",
-    rows: [
-      { label: "타이머 수", free: `${LIMITS.free.timers}개`, pass: Number.isFinite(LIMITS.pass.timers) ? `${LIMITS.pass.timers}개` : "무제한" },
-      { label: "타이머 1개당 구간 수", free: `${LIMITS.free.segments}개`, pass: `${LIMITS.pass.segments}개` },
-      { label: "공유 동시 접속 (발표자 포함)", free: `${LIMITS.free.seats}명`, pass: `${LIMITS.pass.seats}명` },
-      { label: "공유 링크 만들기", free: "제한 없음", pass: "제한 없음" },
-      { label: "기록·평균", free: "제한 없음", pass: "제한 없음" },
+    extend: `${PASS_DAYS}일 연장 $${PASS_PRICE_USD}`,
+    freeFeatures: [
+      `타이머 ${LIMITS.free.timers}개`,
+      `타이머마다 구간 ${LIMITS.free.segments}개`,
+      `공유 동시 접속 ${LIMITS.free.seats}명 (발표자 포함)`,
+      "기록·평균 제한 없음",
     ],
+    passFeatures: [
+      Number.isFinite(LIMITS.pass.timers) ? `타이머 ${LIMITS.pass.timers}개` : "타이머 무제한",
+      `타이머마다 구간 ${LIMITS.pass.segments}개`,
+      `공유 동시 접속 ${LIMITS.pass.seats}명 (발표자 포함)`,
+      "기록·평균 제한 없음",
+    ],
+    note: `이미 30일권이 있으면 만료일에 ${PASS_DAYS}일을 더해요. 만료돼도 타이머와 기록은 그대로예요. 결제는 Polar가 처리하고 영수증은 이메일로 보내드려요. 환불은`,
+    noteTail: "을 확인해 주세요",
   },
   billingSuccess: {
     pending: "30일권 반영 중",
-    delayed: "결제는 완료됐어요, 반영이 늦어지고 있어요",
-    backToTimers: "타이머 목록으로",
+    pendingDescription: "결제를 확인하고 있어요. 몇 초면 끝나요",
+    delayed: "결제는 완료됐어요",
+    delayedDescription: "반영이 늦어지고 있어요. 잠시 뒤 타이머 목록에서 플랜을 확인해 주세요",
+    backToTimers: "타이머 목록",
   },
   appError: {
     title: "문제가 생겼어요",
@@ -207,6 +265,8 @@ export const MESSAGES = {
   planLimits: {
     passTimers: "타이머는 제한 없이 만들 수 있어요",
     passSegments: `구간은 ${LIMITS.pass.segments}개까지 넣을 수 있어요`,
+    freeTimers: "30일권은 타이머를 제한 없이 만들 수 있어요",
+    freeSegments: `30일권은 타이머마다 구간 ${LIMITS.pass.segments}개까지 저장할 수 있어요`,
   },
   verdicts: {
     late: "늦음",
@@ -233,7 +293,9 @@ export function errorMessage(code: ErrorCode): string {
 }
 
 export function planLimitMessage(code: "PLAN_LIMIT_TIMERS" | "PLAN_LIMIT_SEGMENTS", plan: Plan): string {
-  if (plan === "free") return MESSAGES.errors[code];
+  if (plan === "free") {
+    return `${MESSAGES.errors[code]}. ${code === "PLAN_LIMIT_TIMERS" ? MESSAGES.planLimits.freeTimers : MESSAGES.planLimits.freeSegments}`;
+  }
   return code === "PLAN_LIMIT_TIMERS" ? MESSAGES.planLimits.passTimers : MESSAGES.planLimits.passSegments;
 }
 
@@ -254,39 +316,70 @@ export function planLabel(plan: Plan, expiresAt: number | null): string {
 }
 
 export function timerSummary(segmentCount: number, plannedMs: number): string {
-  return `구간 ${segmentCount}개 · ${totalTimeLabel(plannedMs)}`;
+  return `${segmentCount}구간 · ${totalTimeLabel(plannedMs)}`;
 }
 
 export function totalTimeLabel(plannedMs: number): string {
-  return `전체 ${formatDuration(plannedMs)}`;
+  return `${MESSAGES.results.total} ${formatDuration(plannedMs)}`;
 }
 
-export function segmentFieldLabel(index: number, field: "name" | "clock"): string {
-  return `구간 ${index + 1} ${field === "name" ? MESSAGES.timers.segmentName : MESSAGES.timers.segmentClock}`;
+export function segmentCountLabel(count: number): string {
+  return `${MESSAGES.timers.segments} ${count}개`;
+}
+
+export function segmentUsageLabel(count: number, limit: number | null, plannedMs: number): string {
+  return `${limit === null ? count : `${count} / ${limit}`}개 · ${totalTimeLabel(plannedMs)}`;
+}
+
+const segmentFields = {
+  name: MESSAGES.timers.segmentName,
+  clock: MESSAGES.timers.segmentClock,
+  reorder: MESSAGES.timers.reorder,
+  remove: MESSAGES.timers.removeSegment,
+};
+
+export function segmentFieldLabel(index: number, field: keyof typeof segmentFields): string {
+  return `${MESSAGES.timers.segments} ${index + 1} ${segmentFields[field]}`;
 }
 
 export function progressLabel(index: number, count: number): string {
   return `${index + 1} / ${count}`;
 }
 
-export function totalRemainingLabel(remainingMs: number): string {
-  return `전체 ${formatClock(remainingMs)}${isOvertime(remainingMs) ? "" : " 남음"}`;
+export function nextSegmentLabel(name?: string): string {
+  return name === undefined ? MESSAGES.timerFace.lastSegment : `다음 · ${name}`;
 }
 
-export function nextSegmentLabel(name?: string): string {
-  return name === undefined ? MESSAGES.timerFace.lastSegment : `다음: ${name}`;
+export function lastResultLabel(name: string): string {
+  return `${MESSAGES.timerFace.lastResult} · ${name}`;
+}
+
+export function seatCountLabel(used: number, cap: number): string {
+  return `${used}/${cap}`;
 }
 
 export function seatLabel(used: number, cap: number): string {
-  return `접속 ${used}/${cap}`;
+  return `${MESSAGES.share.seats} ${seatCountLabel(used, cap)}명`;
 }
 
 export function viewerFullLabel(cap: number): string {
   return `인원이 가득 찼어요 (${cap}/${cap})`;
 }
 
-export function recordsTitle(timerName: string): string {
-  return `${timerName} ${MESSAGES.timers.records}`;
+export function recordCountLabel(count: number): string {
+  return `${MESSAGES.timers.records} ${count}개`;
+}
+
+export function recordTotalsLabel(actualMs: number, plannedMs: number): string {
+  return `${MESSAGES.results.actual} ${formatDuration(actualMs)} · ${MESSAGES.results.planned} ${formatDuration(plannedMs)}`;
+}
+
+export function averageCaption(count: number): string {
+  return `같은 구간 구성의 기록 ${count}개`;
+}
+
+export function resultSummaryLabel(startedAt: number, plannedMs: number, actualMs: number): string {
+  return `${recordDateLabel(startedAt)} · ${MESSAGES.results.planned} ${formatDuration(plannedMs)} / ${MESSAGES.results.actual} ${formatDuration(actualMs)}`;
 }
 
 export function recordDateLabel(startedAt: number): string {

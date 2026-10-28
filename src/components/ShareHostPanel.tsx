@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { LIMITS } from "@/lib/billing";
 import { MESSAGES, seatLabel } from "@/lib/messages";
 import { seatUsage } from "@/lib/seats";
 import type { PresenceMember } from "@/types/share";
+import { Icon } from "./Icon";
+import { LimitNotice } from "./LimitNotice";
 
 const copy = MESSAGES.share;
-const secondary = "inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-neutral-700 px-4 text-neutral-100 transition-colors duration-150 hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
 
 export function ShareHostPanel({ timerId, code, seatCap, members, onCreate }: {
   timerId: string;
@@ -19,40 +19,49 @@ export function ShareHostPanel({ timerId, code, seatCap, members, onCreate }: {
 }) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
-  if (code === null) return <button type="button" className={secondary} onClick={onCreate}>{copy.create}</button>;
-
-  const url = `${location.origin}/s/${code}`;
   const usage = seatCap === null ? null : seatUsage(members, seatCap);
   const viewers = members.filter((member) => member.role === "viewer").sort((a, b) => a.joinedAt - b.joinedAt);
+
   async function copyLink() {
     setCopied(false);
     setCopyFailed(false);
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(`${location.origin}/s/${code}`);
       setCopied(true);
     } catch {
       setCopyFailed(true);
     }
   }
-  return <section className="space-y-3">
-    <div className="flex items-center gap-3">
-      <p className="min-w-0 flex-1 break-all text-sm text-neutral-300">{url}</p>
-      <button type="button" className={`${secondary} shrink-0`} onClick={() => void copyLink()}>{copy.copy}</button>
+
+  return <section className="card">
+    <div className="flex flex-col gap-1">
+      <h2 className="heading">{copy.title}</h2>
+      <p className="text-sm text-soft">{code === null ? copy.createHint : copy.linkHint}</p>
     </div>
-    {copied ? <p role="status" className="text-sm text-neutral-300">{copy.copied}</p> : null}
-    {copyFailed ? <p role="alert" className="text-sm text-red-400">{copy.copyFailed}</p> : null}
-    {usage && seatCap !== null ? <>
-      <p className="text-sm tabular-nums text-neutral-400">{seatLabel(usage.used, seatCap)}</p>
-      {usage.full ? <div className="space-y-3 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-        <p>{copy.full}</p>
-        {seatCap < LIMITS.pass.seats ? <>
-          <p>{copy.passSeats}</p>
-          <Link href={`/pricing?returnTo=/timers/${timerId}/run`} className={secondary}>{MESSAGES.timers.viewPass}</Link>
-        </> : null}
-      </div> : null}
-    </> : null}
-    {viewers.length > 0 ? <ul className="divide-y divide-neutral-800 text-sm text-neutral-300">
-      {viewers.map((member) => <li key={member.clientId} className="break-words py-2">{member.nickname}</li>)}
-    </ul> : null}
+    {code === null ? <div>
+      <button type="button" className="btn btn-secondary" onClick={onCreate}><Icon name="link" size={18} />{copy.create}</button>
+    </div> : <>
+      <div className="flex items-center gap-2">
+        <p className="field flex items-center overflow-hidden text-sm whitespace-nowrap tabular-nums">
+          <span className="text-soft">/s/</span><span className="truncate">{code}</span>
+        </p>
+        <button type="button" className="btn btn-secondary shrink-0" onClick={() => void copyLink()}>
+          <Icon name={copied ? "check" : "copy"} size={18} />{copied ? copy.copied : copy.copy}
+        </button>
+      </div>
+      {copyFailed ? <p role="alert" className="text-sm text-red-400">{copy.copyFailed}</p> : null}
+      {usage && seatCap !== null ? <>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm tabular-nums">{seatLabel(usage.used, seatCap)} <span className="text-soft">{copy.includesHost}</span></p>
+          <ul className="flex flex-wrap gap-1.5">
+            <li className="chip"><Icon name="mic" size={14} />{copy.hostSelf}</li>
+            {viewers.map((member) => <li key={member.clientId} className="chip font-medium">{member.nickname}</li>)}
+          </ul>
+        </div>
+        {usage.full ? (seatCap < LIMITS.pass.seats
+          ? <LimitNotice text={`${copy.full} · ${copy.passSeats}`} pricingHref={`/pricing?returnTo=/timers/${timerId}/run`} />
+          : <LimitNotice text={copy.full} />) : null}
+      </> : null}
+    </>}
   </section>;
 }

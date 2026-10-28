@@ -13,7 +13,7 @@ describe("PageShell", () => {
     vi.stubEnv("CONTACT_EMAIL", "contact@example.test");
     render(<PageShell><h1>{MESSAGES.serviceName}</h1></PageShell>);
     expect(screen.getByRole("main")).toContainElement(screen.getByRole("heading", { name: MESSAGES.serviceName }));
-    expect(screen.getByRole("link", { name: MESSAGES.footer.contact })).toHaveAttribute("href", "mailto:contact@example.test");
+    expect(screen.getByRole("link", { name: "contact@example.test" })).toHaveAttribute("href", "mailto:contact@example.test");
     expect(screen.getByRole("contentinfo").compareDocumentPosition(screen.getByRole("main")) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
   });
 

@@ -86,6 +86,13 @@ export function toSegmentResult(time: SegmentTime): SegmentResult {
   return { ...time, diffMs, verdict: verdictOf(diffMs) };
 }
 
+export function resultTotals(times: SegmentTime[]): Omit<SegmentResult, "name"> {
+  const plannedMs = times.reduce((sum, time) => sum + time.plannedMs, 0);
+  const actualMs = times.reduce((sum, time) => sum + time.actualMs, 0);
+  const diffMs = actualMs - plannedMs;
+  return { plannedMs, actualMs, diffMs, verdict: verdictOf(diffMs) };
+}
+
 export function verdictOf(diffMs: number): Verdict {
   if (Math.abs(diffMs) <= ON_TIME_TOLERANCE_MS) return "on_time";
   return diffMs > 0 ? "late" : "early";

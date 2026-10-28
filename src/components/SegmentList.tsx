@@ -1,17 +1,18 @@
-import { totalTimeLabel } from "@/lib/messages";
 import { formatDuration, totalPlannedMs } from "@/lib/timer";
 import type { Segment } from "@/types/timer";
 
 export function SegmentList({ segments }: { segments: Segment[] }) {
   return (
-    <ul className="w-full divide-y divide-neutral-800 text-sm text-neutral-300">
-      {segments.map((segment) => (
-        <li key={segment.id} className="flex items-start justify-between gap-4 py-3">
-          <span className="min-w-0 break-words">{segment.name}</span>
-          <span className="shrink-0 tabular-nums">{formatDuration(totalPlannedMs([segment]))}</span>
+    <ol className="flex w-full flex-col gap-1.5 text-sm">
+      {segments.map((segment, index) => (
+        <li key={segment.id} className="flex items-start justify-between gap-4">
+          <span className="flex min-w-0 text-soft">
+            <span className="w-6 shrink-0 tabular-nums">{index + 1}</span>
+            <span className="min-w-0 break-words">{segment.name}</span>
+          </span>
+          <span className="shrink-0 text-white tabular-nums">{formatDuration(totalPlannedMs([segment]))}</span>
         </li>
       ))}
-      <li className="py-3 text-right font-medium tabular-nums">{totalTimeLabel(totalPlannedMs(segments))}</li>
-    </ul>
+    </ol>
   );
 }

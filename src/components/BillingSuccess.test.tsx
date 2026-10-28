@@ -29,6 +29,7 @@ describe("BillingSuccess", () => {
     status.mockResolvedValue(pass);
     render(<BillingSuccess returnTo="/timers/demo/run?from=pricing" />);
     expect(screen.getByText("30일권 반영 중")).toBeInTheDocument();
+    expect(screen.getByText("결제를 확인하고 있어요. 몇 초면 끝나요")).toBeInTheDocument();
     expect(status).toHaveBeenCalledTimes(1);
     await tick();
     expect(navigation.replace).toHaveBeenCalledExactlyOnceWith("/timers/demo/run?from=pricing");
@@ -54,11 +55,13 @@ describe("BillingSuccess", () => {
     render(<BillingSuccess returnTo="/timers/new" />);
     await tick(17_999);
     expect(status).toHaveBeenCalledTimes(9);
-    expect(screen.queryByText("결제는 완료됐어요, 반영이 늦어지고 있어요")).not.toBeInTheDocument();
+    expect(screen.queryByText("결제는 완료됐어요")).not.toBeInTheDocument();
     await tick(1);
     expect(status).toHaveBeenCalledTimes(10);
-    expect(screen.getByRole("status")).toHaveTextContent("결제는 완료됐어요, 반영이 늦어지고 있어요");
-    expect(screen.getByRole("link", { name: "타이머 목록으로" })).toHaveAttribute("href", "/timers");
+    expect(screen.getByRole("status")).toHaveTextContent("결제는 완료됐어요");
+    expect(screen.getByRole("status")).toHaveTextContent("반영이 늦어지고 있어요");
+    expect(screen.queryByText("30일권 반영 중")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "타이머 목록" })).toHaveAttribute("href", "/timers");
     await tick(2_999);
     expect(navigation.replace).not.toHaveBeenCalled();
     await tick(1);
@@ -74,7 +77,7 @@ describe("BillingSuccess", () => {
     await tick(18_000);
     expect(status).toHaveBeenCalledTimes(10);
     expect(navigation.replace).toHaveBeenCalledExactlyOnceWith("/timers/new");
-    expect(screen.queryByText("결제는 완료됐어요, 반영이 늦어지고 있어요")).not.toBeInTheDocument();
+    expect(screen.queryByText("결제는 완료됐어요")).not.toBeInTheDocument();
   });
 
   it("counts rejected and unsuccessful reads toward the same retry limit", async () => {
@@ -82,7 +85,7 @@ describe("BillingSuccess", () => {
     render(<BillingSuccess returnTo="/timers/new" />);
     await tick(18_000);
     expect(status).toHaveBeenCalledTimes(10);
-    expect(screen.getByRole("status")).toHaveTextContent("결제는 완료됐어요, 반영이 늦어지고 있어요");
+    expect(screen.getByRole("status")).toHaveTextContent("결제는 완료됐어요");
   });
 
   it("only reads plan status and never calls checkout or write methods", async () => {

@@ -1,16 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { errorMessage, MESSAGES, planLabel } from "@/lib/messages";
 import { safeReturnTo } from "@/lib/validation";
 import { api, dataMode } from "@/services/api";
 import type { PlanStatus } from "@/types/api";
+import { AppBar } from "./AppBar";
+import { Icon } from "./Icon";
 
 const copy = MESSAGES.pricing;
-const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
-const primary = `inline-flex min-h-11 items-center justify-center rounded-md bg-neutral-50 px-4 font-medium text-neutral-950 transition-colors duration-150 hover:bg-neutral-200 ${focus}`;
-const textLink = `inline-flex min-h-11 min-w-11 items-center rounded-md text-sm text-neutral-400 hover:text-neutral-200 ${focus}`;
+
+function Tier({ name, price, period, features, children }: {
+  name: string;
+  price: string;
+  period?: string;
+  features: readonly string[];
+  children?: ReactNode;
+}) {
+  const id = useId();
+  return <section aria-labelledby={id} className="card gap-6 p-8">
+    <h3 id={id} className="heading">{name}</h3>
+    <p className="flex items-baseline gap-1.5">
+      <span className="text-[44px] leading-none tracking-[-1px] text-white tabular-nums">{price}</span>
+      {period && <span className="text-sm text-soft">{period}</span>}
+    </p>
+    <ul className="flex flex-1 flex-col gap-3">
+      {features.map((feature) => <li key={feature} className="flex items-start gap-2.5 text-sm text-white">
+        <Icon name="check" size={18} className="mt-px" /><span>{feature}</span>
+      </li>)}
+    </ul>
+    {children}
+  </section>;
+}
 
 export function PricingView({ returnTo }: { returnTo: string }) {
   const destination = safeReturnTo(returnTo, "/timers");
@@ -45,40 +67,27 @@ export function PricingView({ returnTo }: { returnTo: string }) {
     setPurchasing(false);
   }
 
-  return (
-    <section className="space-y-8">
-      <h1 className="text-2xl font-semibold text-neutral-50">{copy.title}</h1>
-      <div className="space-y-3">
-        {status ? <>
-          <p className="text-sm text-neutral-300">{planLabel(status.plan, status.expiresAt)}</p>
-          {status.plan === "pass" && <p className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">{copy.extension}</p>}
-        </> : !error && <p className="text-sm text-neutral-400">{MESSAGES.timers.loading}</p>}
-        {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+  return <>
+    <AppBar back={destination} title={copy.title}>
+      {status && <span className="chip">{planLabel(status.plan, status.expiresAt)}</span>}
+    </AppBar>
+    <div className="page">
+      <div className="flex flex-col gap-2">
+        <h2 className="title">{copy.headline}</h2>
+        <p className="text-sm text-soft">{copy.description}</p>
       </div>
-      <table aria-label={copy.comparison} className="w-full table-fixed text-left text-sm text-neutral-300">
-        <thead className="border-b border-neutral-800 text-xs text-neutral-400">
-          <tr>
-            <th scope="col" className="w-1/2 py-3 pr-2 font-medium">{copy.item}</th>
-            <th scope="col" className="py-3 text-right font-medium">{MESSAGES.timers.free}</th>
-            <th scope="col" className="py-3 text-right font-medium">{MESSAGES.timers.pass}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-neutral-800">
-          {copy.rows.map((row) => <tr key={row.label}>
-            <th scope="row" className="break-words py-3 pr-2 font-normal">{row.label}</th>
-            <td className="py-3 text-right tabular-nums">{row.free}</td>
-            <td className="py-3 text-right tabular-nums">{row.pass}</td>
-          </tr>)}
-        </tbody>
-      </table>
-      <div className="space-y-3">
-        <p className="text-2xl font-semibold tabular-nums text-neutral-50">{copy.price}</p>
-        <p className="text-sm text-neutral-400">{copy.duration}</p>
-        <div className="flex flex-wrap items-center gap-4">
-          <button type="button" onClick={purchase} disabled={purchasing} className={primary}>{dataMode === "mock" ? copy.mockBuy : copy.buy}</button>
-          <Link href={destination} className={textLink}>{copy.back}</Link>
-        </div>
+      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Tier name={MESSAGES.timers.free} price={copy.freePrice} features={copy.freeFeatures}>
+          {status?.plan === "free" && <button type="button" disabled className="btn btn-secondary w-full">{copy.current}</button>}
+        </Tier>
+        <Tier name={MESSAGES.timers.pass} price={copy.price} period={copy.period} features={copy.passFeatures}>
+          <button type="button" onClick={purchase} disabled={purchasing} className="btn btn-primary btn-lg w-full">
+            {dataMode === "mock" ? copy.mockBuy : status?.plan === "pass" ? copy.extend : copy.buy}
+          </button>
+        </Tier>
       </div>
-    </section>
-  );
+      <p className="caption">{copy.note} <Link href="/terms" className="focus-ring rounded-sm text-white underline underline-offset-2">{MESSAGES.terms.title}</Link>{copy.noteTail}</p>
+    </div>
+  </>;
 }
