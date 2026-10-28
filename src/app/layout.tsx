@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0a0a0a",
+  themeColor: "#0a0b0d",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <body className="bg-[#0a0a0a] text-neutral-300">
+      <body className="bg-surface text-white">
         {children}
         <MockBadge mode={dataMode} />
       </body>

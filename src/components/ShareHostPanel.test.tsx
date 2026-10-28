@@ -16,38 +16,41 @@ describe("ShareHostPanel", () => {
   it("offers only create before a link exists", () => {
     const create = vi.fn();
     render(<ShareHostPanel timerId="t" code={null} seatCap={null} members={[]} onCreate={create} />);
+    expect(screen.getByRole("heading", { name: "공유" })).toBeInTheDocument();
+    expect(screen.getByText("시청자가 같은 타이머를 보려면 시작 전에 링크를 만들어요")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "공유 링크 만들기" })); expect(create).toHaveBeenCalledOnce();
     expect(screen.queryByRole("button", { name: "복사" })).not.toBeInTheDocument();
   });
-  it("shows the origin link, counts host once, lists viewers in joining order, and copies", async () => {
+  it("shows the link path, counts host once, lists the host then viewers in joining order, and copies the full URL", async () => {
     const writeText = vi.fn(async () => {});
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    open(); expect(screen.getByText(`${location.origin}/s/abc`)).toBeInTheDocument();
-    expect(screen.getByText("접속 3/3")).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["먼저 학생", "나중 학생"]);
+    open(3, viewers.slice(1));
+    expect(screen.getByText("abc")).toBeInTheDocument();
+    expect(screen.getByText("접속 2/3명")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual(["나 (발표자)", "먼저 학생"]);
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "복사" })));
-    expect(writeText).toHaveBeenCalledWith(`${location.origin}/s/abc`); expect(screen.getByRole("status")).toHaveTextContent("복사했어요");
+    expect(writeText).toHaveBeenCalledWith(`${location.origin}/s/abc`);
+    expect(screen.getByRole("button", { name: "복사됨" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "공유 링크 만들기" })).not.toBeInTheDocument();
   });
   it("shows a full-seat notice and pass link only below the pass cap", () => {
     const { unmount } = open();
-    expect(screen.getByText("자리가 가득 찼어요")).toBeInTheDocument();
-    expect(screen.getByText("30일권은 10명까지")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("자리가 가득 찼어요 · 30일권은 10명까지 함께 볼 수 있어요");
     expect(screen.getByRole("link", { name: "30일권 보기" })).toHaveAttribute("href", "/pricing?returnTo=/timers/timer-id/run");
     unmount(); open(10, Array.from({ length: 9 }, (_, i) => ({ clientId: String(i), nickname: `학생${i}`, role: "viewer", joinedAt: i })));
-    expect(screen.getByText("자리가 가득 찼어요")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/^자리가 가득 찼어요$/);
     expect(screen.queryByRole("link", { name: "30일권 보기" })).not.toBeInTheDocument();
   });
   it("does not show a full-seat notice when there is room or the cap is loading", () => {
-    const { unmount } = open(3, []); expect(screen.getByText("접속 1/3")).toBeInTheDocument();
-    expect(screen.queryByText("자리가 가득 찼어요")).not.toBeInTheDocument(); unmount();
+    const { unmount } = open(3, []); expect(screen.getByText("접속 1/3명")).toBeInTheDocument();
+    expect(screen.queryByText(/자리가 가득 찼어요/)).not.toBeInTheDocument(); unmount();
     open(null); expect(screen.queryByText(/접속/)).not.toBeInTheDocument();
-    expect(screen.queryByText("자리가 가득 찼어요")).not.toBeInTheDocument();
+    expect(screen.queryByText(/자리가 가득 찼어요/)).not.toBeInTheDocument();
   });
   it("handles clipboard failure without falsely showing success", async () => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error()) } });
     open(); await act(async () => fireEvent.click(screen.getByRole("button", { name: "복사" })));
     expect(screen.getByRole("alert")).toHaveTextContent("복사하지 못했어요. 다시 시도해 주세요");
-    expect(screen.queryByText("복사했어요")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "복사됨" })).not.toBeInTheDocument();
   });
 });

@@ -14,8 +14,9 @@ describe("ResultTable", () => {
     ];
     const { container } = render(<ResultTable results={results} />);
     expect(screen.getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["구간", "계획", "실제", "차이"]);
-    const rows = screen.getAllByRole("row").slice(1);
+    const rows = screen.getAllByRole("row").slice(1, -1);
     const expected = [["도입", "1:00", "1:12", "0:12 늦음"], ["본론", "2:00", "1:52", "0:08 빠름"], ["결론", "0:30", "0:31", "정시"]];
+    expect(within(screen.getAllByRole("row").at(-1)!).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["합계", "3:30", "3:35", ""]);
     rows.forEach((row, index) => {
       const cells = within(row).getAllByRole("cell");
       expect(cells.map((cell) => cell.textContent)).toEqual(expected[index]);
@@ -28,7 +29,7 @@ describe("ResultTable", () => {
     colored.forEach((element) => expect(element.tagName).toBe("TD"));
   });
 
-  it("keeps the headers with no result rows", () => {
+  it("keeps the headers without a total row when there are no results", () => {
     render(<ResultTable results={[]} />);
     expect(screen.getAllByRole("row")).toHaveLength(1);
   });

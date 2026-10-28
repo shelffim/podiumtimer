@@ -3,24 +3,27 @@
 import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { errorMessage, MESSAGES, recordDateLabel, recordsTitle } from "@/lib/messages";
-import { averageRecords } from "@/lib/stats";
-import { toSegmentResult } from "@/lib/timer";
+import { averageCaption, diffLabel, errorMessage, MESSAGES, recordCountLabel, recordDateLabel, recordTotalsLabel } from "@/lib/messages";
+import { averageRecords, matchingRecords } from "@/lib/stats";
+import { resultTotals, toSegmentResult } from "@/lib/timer";
 import { api } from "@/services/api";
 import type { RunRecord, Timer } from "@/types/timer";
+import { AppBar } from "./AppBar";
 import { AverageDiffChart } from "./AverageDiffChart";
 import { AverageTable } from "./AverageTable";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Icon } from "./Icon";
 import { ResultTable } from "./ResultTable";
 
 const copy = MESSAGES.records;
-const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
-const textLink = `inline-flex min-h-11 min-w-11 items-center rounded-md text-sm text-neutral-400 hover:text-neutral-200 ${focus}`;
+const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" };
 
 export function RecordsView({ timerId }: { timerId: string }) {
   const router = useRouter();
   const viewId = useId();
   const [data, setData] = useState<{ timer: Timer; records: RunRecord[] } | null>(null);
-  const [expanded, setExpanded] = useState<string[]>([]);
+  const [open, setOpen] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export function RecordsView({ timerId }: { timerId: string }) {
       else if (!records.ok) setError(errorMessage(records.code));
       else {
         setData({ timer: timer.data, records: records.data });
-        setExpanded([]);
+        setOpen(null);
         setNotFound(false);
         setError(null);
       }
@@ -50,7 +53,7 @@ export function RecordsView({ timerId }: { timerId: string }) {
   }, [router, timerId]);
 
   async function deleteRecord(id: string) {
-    if (deletingId || !window.confirm(copy.deleteConfirm)) return;
+    if (deletingId) return;
     setDeletingId(id);
     setError(null);
     try {
@@ -61,7 +64,7 @@ export function RecordsView({ timerId }: { timerId: string }) {
         return;
       }
       setData((current) => current && ({ ...current, records: current.records.filter((record) => record.id !== id) }));
-      setExpanded((current) => current.filter((recordId) => recordId !== id));
+      setOpen((current) => current === id ? null : current);
     } catch {
       setError(MESSAGES.appError.title);
     } finally {
@@ -69,51 +72,71 @@ export function RecordsView({ timerId }: { timerId: string }) {
     }
   }
 
-  if (notFound) return <section className="space-y-4">
-    <h1 className="text-2xl font-semibold text-neutral-50">{MESSAGES.timers.notFound}</h1>
-    <Link href="/timers" className={textLink}>{MESSAGES.timers.backToList}</Link>
-  </section>;
+  const bar = <AppBar back="/timers" title={MESSAGES.timers.records} />;
+  if (notFound) return <>
+    {bar}
+    <div className="page">
+      <p role="alert" className="text-sm text-red-400">{MESSAGES.timers.notFound}</p>
+      <Link href="/timers" className="btn btn-secondary self-start">{MESSAGES.timers.backToList}</Link>
+    </div>
+  </>;
 
   const rows = data ? averageRecords(data.timer, data.records) : null;
-  return (
-    <section className="space-y-8">
+  return <>
+    {bar}
+    <div className="page">
       {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
-      {!data && !error && <p className="text-sm text-neutral-400">{MESSAGES.timers.loading}</p>}
+      {!data && !error && <p className="text-sm text-soft">{MESSAGES.timers.loading}</p>}
       {data && <>
-        <header className="space-y-3">
-          <h1 className="break-words text-2xl font-semibold text-neutral-50">{recordsTitle(data.timer.name)}</h1>
-          <div className="flex gap-4">
-            <Link href={`/timers/${timerId}/run`} className={textLink}>{MESSAGES.timers.start}</Link>
-            <Link href={`/timers/${timerId}`} className={textLink}>{MESSAGES.timers.edit}</Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="title">{data.timer.name}</h2>
+          <Link href={`/timers/${timerId}/run`} className="btn btn-primary"><Icon name="play" size={18} />{MESSAGES.timers.start}</Link>
+        </div>
+        <div className="grid items-start gap-6 md:grid-cols-2">
+          {rows ? <section aria-labelledby={`${viewId}-average`} className="card">
+            <div className="flex flex-col gap-1">
+              <h3 id={`${viewId}-average`} className="heading">{copy.average}</h3>
+              <p className="caption">{averageCaption(matchingRecords(data.timer, data.records).length)}</p>
+            </div>
+            <AverageDiffChart rows={rows} />
+            <AverageTable rows={rows} />
+          </section> : <div className="card"><p className="text-sm text-soft">{copy.averageEmpty}</p></div>}
+          <div className="flex flex-col gap-2">
+            <h3 className="label px-1">{recordCountLabel(data.records.length)}</h3>
+            {data.records.length === 0 ? <div className="flex flex-col gap-1 px-1 text-sm text-soft">
+              <p>{copy.empty}</p>
+              <p>{copy.emptyDescription}</p>
+            </div> : <ul className="flex flex-col gap-2">
+              {data.records.map((record) => {
+                const results = record.segments.map(toSegmentResult);
+                const totals = resultTotals(results);
+                const isOpen = open === record.id;
+                const id = `${viewId}-${record.id}`;
+                return <li key={record.id} className="card gap-0 p-0">
+                  <button type="button" aria-expanded={isOpen} aria-controls={`${id}-result`} aria-labelledby={`${id}-date`} aria-describedby={`${id}-totals ${id}-diff`}
+                    onClick={() => setOpen(isOpen ? null : record.id)}
+                    className="focus-ring flex min-h-11 items-center gap-3 rounded-3xl px-5 py-4 text-left">
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <time id={`${id}-date`} dateTime={new Date(record.startedAt).toISOString()} className="label tabular-nums">{recordDateLabel(record.startedAt)}</time>
+                      <span id={`${id}-totals`} className="caption tabular-nums">{recordTotalsLabel(totals.actualMs, totals.plannedMs)}</span>
+                    </span>
+                    <span id={`${id}-diff`} className={`text-sm tabular-nums ${verdictColor[totals.verdict]}`}>{diffLabel(totals.diffMs)}</span>
+                    <Icon name={isOpen ? "chevron-up" : "chevron-down"} size={18} className="text-soft" />
+                  </button>
+                  {isOpen && <div id={`${id}-result`} className="flex flex-col gap-2 px-5 pb-4">
+                    <ResultTable results={results} />
+                    <div>
+                      <button type="button" onClick={() => setDeleteTarget(record.id)} disabled={deletingId !== null} className="btn-text text-sm">{copy.delete}</button>
+                    </div>
+                  </div>}
+                </li>;
+              })}
+            </ul>}
           </div>
-        </header>
-        {rows && <section aria-labelledby={`${viewId}-average`} className="space-y-4">
-          <h2 id={`${viewId}-average`} className="text-sm font-medium text-neutral-400">{copy.average}</h2>
-          <AverageTable rows={rows} />
-          <AverageDiffChart rows={rows} />
-        </section>}
-        {data.records.length === 0 ? <div className="space-y-3 text-sm text-neutral-300">
-          <p>{copy.empty}</p>
-          <p className="text-neutral-400">{copy.emptyDescription}</p>
-        </div> : <ul className="divide-y divide-neutral-800">
-          {data.records.map((record) => {
-            const open = expanded.includes(record.id);
-            const resultId = `${viewId}-${record.id}`;
-            return <li key={record.id} className="py-3">
-              <div className="flex items-center gap-3">
-                <button type="button" aria-expanded={open} aria-controls={resultId}
-                  className={`min-h-11 min-w-0 flex-1 rounded-md py-2 text-left text-sm tabular-nums text-neutral-300 hover:text-neutral-50 ${focus}`}
-                  onClick={() => setExpanded((current) => open ? current.filter((id) => id !== record.id) : [...current, record.id])}>
-                  <time dateTime={new Date(record.startedAt).toISOString()}>{recordDateLabel(record.startedAt)}</time>
-                </button>
-                <button type="button" onClick={() => void deleteRecord(record.id)} disabled={deletingId !== null}
-                  className={`${textLink} justify-center disabled:text-neutral-500`}>{copy.delete}</button>
-              </div>
-              {open && <div id={resultId}><ResultTable results={record.segments.map(toSegmentResult)} /></div>}
-            </li>;
-          })}
-        </ul>}
+        </div>
       </>}
-    </section>
-  );
+    </div>
+    {deleteTarget && <ConfirmDialog title={copy.deleteConfirm} description={copy.deleteDescription} confirmLabel={copy.confirmDelete}
+      onCancel={() => setDeleteTarget(null)} onConfirm={() => { setDeleteTarget(null); void deleteRecord(deleteTarget); }} />}
+  </>;
 }

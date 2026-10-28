@@ -1,9 +1,105 @@
 @import "tailwindcss";
 
+@theme {
+  --color-surface: #0a0b0d;
+  --color-card: #16181c;
+  --color-fill: #1f2228;
+  --color-line: #2a2d33;
+  --color-soft: #a8acb3;
+  --color-muted: #7c828a;
+  --color-ink: #0a0b0d;
+}
+
 html,
 body {
-  background: #0a0a0a;
-  color: #d4d4d4;
+  background: var(--color-surface);
+  color: #fff;
   color-scheme: dark;
   font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400;
+}
+
+@layer components {
+  .page {
+    @apply mx-auto flex w-full max-w-[960px] flex-1 flex-col gap-6 px-5 pt-4 pb-8 md:gap-8 md:px-8 md:pt-6 md:pb-12;
+  }
+  .page-narrow {
+    @apply max-w-[560px];
+  }
+
+  .title {
+    @apply text-[32px] leading-[1.13] font-normal tracking-[-0.4px] break-words break-keep text-white;
+  }
+  .hero {
+    @apply text-4xl leading-[1.11] font-normal tracking-[-0.5px] text-balance break-keep text-white md:text-[52px] md:leading-none md:tracking-[-1.3px];
+  }
+  .heading {
+    @apply text-lg leading-[1.33] font-semibold break-words break-keep text-white;
+  }
+  .label {
+    @apply text-base leading-tight font-semibold text-white;
+  }
+  .caption {
+    @apply text-[13px] leading-normal text-soft;
+  }
+
+  .btn {
+    @apply focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-base leading-tight font-semibold whitespace-nowrap transition-colors duration-150 disabled:cursor-default;
+  }
+  .btn-lg {
+    @apply min-h-14 px-8;
+  }
+  .btn-primary {
+    @apply bg-neutral-50 text-ink hover:bg-neutral-200 disabled:bg-neutral-600 disabled:text-neutral-900;
+  }
+  .btn-secondary {
+    @apply bg-card text-white hover:bg-[#23262c] disabled:text-muted disabled:hover:bg-card;
+  }
+  .btn-text {
+    @apply focus-ring inline-flex min-h-11 items-center rounded-md text-base font-semibold text-soft transition-colors duration-150 hover:text-white disabled:text-muted;
+  }
+  .icon-btn {
+    @apply focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-fill text-white transition-colors duration-150 hover:bg-line disabled:text-[#4a4f57] disabled:hover:bg-fill;
+  }
+
+  .card {
+    @apply flex flex-col gap-4 rounded-3xl bg-card p-5;
+  }
+  .chip {
+    @apply inline-flex h-7 items-center gap-1.5 rounded-full bg-fill px-3 text-xs font-semibold whitespace-nowrap text-white;
+  }
+  .plate {
+    @apply inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-fill text-white;
+  }
+  .notice {
+    @apply flex flex-wrap items-center gap-3 rounded-2xl bg-fill p-4;
+  }
+
+  .field {
+    @apply h-12 w-full min-w-0 rounded-xl border border-line bg-surface px-4 text-white placeholder:text-muted focus:border-2 focus:border-neutral-300 focus:px-[15px] focus:outline-none aria-invalid:border-red-400;
+  }
+
+  .spinner {
+    @apply size-7 animate-spin rounded-full border-[3px] border-line border-t-white motion-reduce:animate-none;
+  }
+
+  .data-table {
+    @apply w-full table-fixed border-collapse text-left text-sm;
+  }
+  .data-table th {
+    @apply border-b border-line px-1.5 py-2 text-right text-xs font-semibold whitespace-nowrap text-soft;
+  }
+  .data-table td {
+    @apply border-b border-line px-1.5 py-3 text-right whitespace-nowrap text-white tabular-nums;
+  }
+  .data-table :is(th, td):first-child {
+    @apply pl-0 text-left whitespace-normal break-words;
+  }
+  .data-table :is(th, td):last-child {
+    @apply pr-0;
+  }
 }

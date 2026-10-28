@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MESSAGES, planLimitMessage } from "@/lib/messages";
@@ -100,17 +100,41 @@ describe("TimerEditor", () => {
     expect(await api.getTimer(timer.id)).toEqual({ ok: true, data: timer });
   });
 
-  it.each(["위로", "아래로"])("preserves segment IDs and saves the order after moving %s", async (direction) => {
+  it.each([["ArrowUp", ["s1", "s0", "s2"], 1], ["ArrowDown", ["s0", "s2", "s1"], 3]] as const)(
+    "moves a segment with %s on its grip, keeping IDs and focus", async (key, order, position) => {
+      const timer = await seed([segment("도입", 0), segment("본론", 1), segment("결론", 2)]);
+      render(<TimerEditor timerId={timer.id} />);
+      await screen.findByDisplayValue("수업 발표");
+      expect(screen.getByText("3 / 10개 · 합계 3:00")).toBeInTheDocument();
+      const grip = screen.getByRole("button", { name: "구간 2 순서 변경" });
+      grip.focus(); fireEvent.keyDown(grip, { key });
+      expect(screen.getByRole("button", { name: `구간 ${position} 순서 변경` })).toHaveFocus();
+      expect(screen.getByLabelText(`구간 ${position} 이름`)).toHaveValue("본론");
+      await save();
+      const saved = await api.getTimer(timer.id);
+      if (!saved.ok) throw new Error();
+      expect(saved.data.segments.map((s) => s.id)).toEqual(order);
+    },
+  );
+
+  it("reorders by dragging a grip over another row", async () => {
     const timer = await seed([segment("도입", 0), segment("본론", 1), segment("결론", 2)]);
-    const user = userEvent.setup();
     render(<TimerEditor timerId={timer.id} />);
     await screen.findByDisplayValue("수업 발표");
-    await user.click(screen.getAllByRole("button", { name: direction })[1]);
+    const rows = screen.getAllByRole("listitem");
+    const elementFromPoint = vi.fn((_x: number, y: number) => within(rows[y]).getByLabelText(/이름$/));
+    Object.defineProperty(document, "elementFromPoint", { configurable: true, value: elementFromPoint });
+    fireEvent.pointerDown(screen.getByRole("button", { name: "구간 1 순서 변경" }), { pointerId: 1, clientX: 0, clientY: 0 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 0, clientY: 1 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 0, clientY: 2 });
+    fireEvent.pointerUp(window, { pointerId: 1 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 0, clientY: 0 });
+    expect(screen.getAllByLabelText(/이름$/).slice(1).map((input) => (input as HTMLInputElement).value)).toEqual(["본론", "결론", "도입"]);
     await save();
     const saved = await api.getTimer(timer.id);
     if (!saved.ok) throw new Error();
-    expect(saved.data.segments.map((s) => s.id)).toEqual(direction === "위로" ? ["s1", "s0", "s2"] : ["s0", "s2", "s1"]);
-    expect(screen.getByText("전체 3:00")).toBeInTheDocument();
+    expect(saved.data.segments.map((s) => s.id)).toEqual(["s1", "s2", "s0"]);
+    Reflect.deleteProperty(document, "elementFromPoint");
   });
 
   it("allows saving zero segments", async () => {
@@ -118,28 +142,31 @@ describe("TimerEditor", () => {
     const user = userEvent.setup();
     render(<TimerEditor timerId={timer.id} />);
     await screen.findByDisplayValue("수업 발표");
-    await user.click(screen.getByRole("button", { name: "삭제" }));
+    await user.click(screen.getByRole("button", { name: "구간 1 삭제" }));
     await save();
     expect(await api.getTimer(timer.id)).toEqual({ ok: true, data: { ...timer, segments: [] } });
   });
 
   it("keeps the timer when delete confirmation is canceled", async () => {
     const timer = await seed();
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     const user = userEvent.setup();
     render(<TimerEditor timerId={timer.id} />);
     await user.click(await screen.findByRole("button", { name: "타이머 삭제" }));
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("기록과 공유 링크도 함께 지워져요"));
+    const dialog = screen.getByRole("dialog", { name: "타이머를 삭제할까요?" });
+    expect(dialog).toHaveAccessibleDescription(expect.stringContaining("기록과 공유 링크도 함께 사라져요"));
+    await user.click(within(dialog).getByRole("button", { name: MESSAGES.common.cancel }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(await api.getTimer(timer.id)).toEqual({ ok: true, data: timer });
     expect(navigation.replace).not.toHaveBeenCalled();
   });
 
   it("deletes a confirmed timer and returns to the list", async () => {
     const timer = await seed();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
     render(<TimerEditor timerId={timer.id} />);
     await user.click(await screen.findByRole("button", { name: "타이머 삭제" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "삭제" }));
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/timers"));
     expect(await api.getTimer(timer.id)).toEqual({ ok: false, code: "NOT_FOUND" });
     expect(navigation.replace).toHaveBeenCalledWith("/timers");
   });

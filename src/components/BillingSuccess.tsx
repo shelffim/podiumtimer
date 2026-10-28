@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { MESSAGES } from "@/lib/messages";
 import { safeReturnTo } from "@/lib/validation";
 import { api } from "@/services/api";
+import { AppBar } from "./AppBar";
+import { Icon } from "./Icon";
 
 const copy = MESSAGES.billingSuccess;
 
@@ -46,13 +48,25 @@ export function BillingSuccess({ returnTo }: { returnTo: string }) {
     };
   }, [destination, router]);
 
-  return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-semibold text-neutral-50">{copy.pending}</h1>
-      {delayed && <>
-        <p role="status" className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">{copy.delayed}</p>
-        <Link href="/timers" className="inline-flex min-h-11 min-w-11 items-center rounded-md text-sm text-neutral-400 hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400">{copy.backToTimers}</Link>
-      </>}
-    </section>
-  );
+  return <>
+    <AppBar />
+    <div className="page page-narrow justify-center">
+      <div className="card items-start gap-5 p-8">
+        {delayed ? <>
+          <Icon name="clock" size={32} />
+          <div role="status" className="flex flex-col gap-1.5">
+            <h1 className="heading">{copy.delayed}</h1>
+            <p className="text-sm text-soft">{copy.delayedDescription}</p>
+          </div>
+          <Link href="/timers" className="btn btn-primary">{copy.backToTimers}</Link>
+        </> : <>
+          <span aria-hidden="true" className="spinner" />
+          <div className="flex flex-col gap-1.5">
+            <h1 className="heading">{copy.pending}</h1>
+            <p className="text-sm text-soft">{copy.pendingDescription}</p>
+          </div>
+        </>}
+      </div>
+    </div>
+  </>;
 }

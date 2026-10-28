@@ -23,20 +23,32 @@ async function seedRecord(timerId: string, startedAt: number, actualMs = 72_000,
 beforeEach(async () => {
   localStorage.clear();
   vi.clearAllMocks();
-  vi.spyOn(window, "confirm").mockReturnValue(false);
   await api.signIn();
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+type User = ReturnType<typeof userEvent.setup>;
+async function openDelete(user: User, index = 0) {
+  const toggle = (await screen.findAllByRole("button", { name: /\d+월 \d+일/ }))[index];
+  if (toggle.getAttribute("aria-expanded") === "false") await user.click(toggle);
+  await user.click(screen.getByRole("button", { name: "이 기록 삭제" }));
+  return screen.getByRole("dialog", { name: "이 기록을 삭제할까요?" });
+}
+async function confirmDelete(user: User, index = 0) {
+  await user.click(within(await openDelete(user, index)).getByRole("button", { name: "삭제" }));
+}
 
 describe("RecordsView", () => {
-  it("shows the timer title, navigation and empty record guidance", async () => {
+  it("shows the timer title, start link and empty guidance", async () => {
     const timer = await seedTimer();
     render(<RecordsView timerId={timer.id} />);
-    expect(await screen.findByRole("heading", { name: "수업 발표 기록" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "수업 발표" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "기록" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "시작" })).toHaveAttribute("href", `/timers/${timer.id}/run`);
-    expect(screen.getByRole("link", { name: "편집" })).toHaveAttribute("href", `/timers/${timer.id}`);
+    expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers");
+    expect(screen.getByText("기록 0개")).toBeInTheDocument();
     expect(screen.getByText("아직 기록이 없어요")).toBeInTheDocument();
     expect(screen.getByText("마지막 구간까지 끝낸 발표가 여기에 쌓여요")).toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.records.averageEmpty)).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "구간별 평균" })).not.toBeInTheDocument();
   });
 
@@ -46,7 +58,7 @@ describe("RecordsView", () => {
     expect(screen.getByRole("link", { name: "목록으로" })).toHaveAttribute("href", "/timers");
   });
 
-  it("lists newest first and expands and collapses a record in place", async () => {
+  it("lists newest first with totals and the whole-run verdict, expanding one record in place", async () => {
     const timer = await seedTimer();
     await seedRecord(timer.id, older);
     await seedRecord(timer.id, newer, 52_000);
@@ -54,16 +66,21 @@ describe("RecordsView", () => {
     render(<RecordsView timerId={timer.id} />);
     const latest = await screen.findByRole("button", { name: recordDateLabel(newer) });
     const toggles = screen.getAllByRole("button", { expanded: false });
-    expect(toggles.map((button) => button.textContent)).toEqual([recordDateLabel(newer), recordDateLabel(older)]);
+    expect(toggles.map((button) => button.querySelector("time")!.textContent)).toEqual([recordDateLabel(newer), recordDateLabel(older)]);
     const row = latest.closest("li")!;
+    expect(latest).toHaveAccessibleDescription("실제 0:52 · 계획 1:00 0:08 빠름");
+    expect(within(row).getByText("0:08 빠름")).toHaveClass("text-blue-400");
+    expect(within(toggles[1].closest("li")!).getByText("0:12 늦음")).toHaveClass("text-red-400");
     expect(within(row).queryByRole("table")).not.toBeInTheDocument();
     await user.click(latest);
     expect(latest).toHaveAttribute("aria-expanded", "true");
-    expect(within(latest.closest("li")!).getByText("0:08 빠름")).toBeInTheDocument();
+    expect(within(within(row).getByRole("table")).getByText("0:08 빠름")).toBeInTheDocument();
     expect(document.getElementById(latest.getAttribute("aria-controls")!)).toContainElement(within(row).getByRole("table"));
-    await user.click(latest);
+    await user.click(toggles[1]);
     expect(latest).toHaveAttribute("aria-expanded", "false");
     expect(within(row).queryByRole("table")).not.toBeInTheDocument();
+    await user.click(toggles[1]);
+    expect(toggles[1]).toHaveAttribute("aria-expanded", "false");
   });
 
   it("requires two matching records before showing averages", async () => {
@@ -71,7 +88,7 @@ describe("RecordsView", () => {
     await seedRecord(timer.id, older);
     await seedRecord(timer.id, newer, 200_000, "다른 구간");
     render(<RecordsView timerId={timer.id} />);
-    await screen.findByRole("heading", { name: "수업 발표 기록" });
+    await screen.findByRole("heading", { name: "수업 발표" });
     expect(screen.queryByRole("region", { name: "구간별 평균" })).not.toBeInTheDocument();
   });
 
@@ -82,6 +99,7 @@ describe("RecordsView", () => {
     await seedRecord(timer.id, newer + 1000, 200_000, "다른 구간");
     render(<RecordsView timerId={timer.id} />);
     const average = await screen.findByRole("region", { name: "구간별 평균" });
+    expect(within(average).getByText("같은 구간 구성의 기록 2개")).toBeInTheDocument();
     const cells = within(average).getAllByRole("cell");
     expect(cells.map((cell) => cell.textContent)).toEqual(["도입", "1:00", "1:14", "0:14 늦음"]);
     expect(within(average).getByRole("list", { name: "평균 차이 막대그래프" })).toBeInTheDocument();
@@ -94,10 +112,12 @@ describe("RecordsView", () => {
     await seedRecord(timer.id, newer);
     const user = userEvent.setup();
     render(<RecordsView timerId={timer.id} />);
-    await user.click((await screen.findAllByRole("button", { name: "삭제" }))[0]);
-    expect(window.confirm).toHaveBeenCalledWith("기록을 삭제할까요?");
+    const dialog = await openDelete(user);
+    expect(dialog).toHaveAccessibleDescription("삭제하면 평균에서도 빠져요");
+    await user.click(within(dialog).getByRole("button", { name: MESSAGES.common.cancel }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(unwrap(await api.listRecords(timer.id))).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "삭제" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /\d+월 \d+일/ })).toHaveLength(2);
     expect(screen.getByRole("region", { name: "구간별 평균" })).toBeInTheDocument();
   });
 
@@ -106,16 +126,15 @@ describe("RecordsView", () => {
     await seedRecord(timer.id, older, 72_000);
     await seedRecord(timer.id, newer, 76_000);
     await seedRecord(timer.id, newer + 1000, 80_000);
-    vi.mocked(window.confirm).mockReturnValue(true);
     const user = userEvent.setup();
     render(<RecordsView timerId={timer.id} />);
-    await user.click((await screen.findAllByRole("button", { name: "삭제" }))[0]);
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "삭제" })).toHaveLength(2));
+    await confirmDelete(user);
+    await waitFor(() => expect(screen.getAllByRole("button", { name: /\d+월 \d+일/ })).toHaveLength(2));
     const average = screen.getByRole("region", { name: "구간별 평균" });
     expect(within(average).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["도입", "1:00", "1:14", "0:14 늦음"]);
-    await user.click(screen.getAllByRole("button", { name: "삭제" })[0]);
+    await confirmDelete(user);
     await waitFor(() => expect(screen.queryByRole("region", { name: "구간별 평균" })).not.toBeInTheDocument());
-    await user.click(screen.getByRole("button", { name: "삭제" }));
+    await confirmDelete(user);
     expect(await screen.findByText("아직 기록이 없어요")).toBeInTheDocument();
     expect(unwrap(await api.listRecords(timer.id))).toHaveLength(0);
   });
@@ -123,14 +142,13 @@ describe("RecordsView", () => {
   it("preserves the record when deletion fails and allows retry", async () => {
     const timer = await seedTimer();
     await seedRecord(timer.id, newer);
-    vi.mocked(window.confirm).mockReturnValue(true);
     vi.spyOn(api, "deleteRecord").mockRejectedValueOnce(new Error());
     const user = userEvent.setup();
     render(<RecordsView timerId={timer.id} />);
-    await user.click(await screen.findByRole("button", { name: "삭제" }));
+    await confirmDelete(user);
     expect(await screen.findByRole("alert")).toHaveTextContent(MESSAGES.appError.title);
     expect(unwrap(await api.listRecords(timer.id))).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "삭제" }));
+    await confirmDelete(user);
     expect(await screen.findByText("아직 기록이 없어요")).toBeInTheDocument();
   });
 
@@ -139,10 +157,9 @@ describe("RecordsView", () => {
     await seedRecord(timer.id, newer);
     const user = userEvent.setup();
     render(<RecordsView timerId={timer.id} />);
-    await screen.findByRole("button", { name: "삭제" });
+    await screen.findByRole("button", { name: recordDateLabel(newer) });
     await api.signOut();
-    vi.mocked(window.confirm).mockReturnValue(true);
-    await user.click(screen.getByRole("button", { name: "삭제" }));
+    await confirmDelete(user);
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/"));
     cleanup(); navigation.replace.mockClear();
     render(<RecordsView timerId={timer.id} />);

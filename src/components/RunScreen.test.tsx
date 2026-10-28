@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MESSAGES } from "@/lib/messages";
 import { createIdleRun, STALE_RUN_MS } from "@/lib/timer";
@@ -54,20 +54,21 @@ describe("RunScreen sharing", () => {
     const code = local().shareCode!;
     expect(create).toHaveBeenCalledExactlyOnceWith(timer.id);
     expect(local().run.status).toBe("idle"); expect(update).not.toHaveBeenCalled();
-    expect(screen.getByText(`${location.origin}/s/${code}`)).toBeInTheDocument();
+    expect(screen.getByText(code)).toBeInTheDocument();
     act(() => emitPresence([
       { clientId: "a", nickname: "학생1", role: "viewer", joinedAt: 1 },
       { clientId: "b", nickname: "학생2", role: "viewer", joinedAt: 2 },
     ]));
-    expect(screen.getByText("자리가 가득 찼어요")).toBeInTheDocument();
+    expect(screen.getByText(/자리가 가득 찼어요/)).toBeInTheDocument();
     click("시작"); await flush();
-    const count = screen.getByText("접속 3/3"); expect(count.closest("[data-no-advance]")).not.toBeNull();
+    const count = screen.getByText("3/3"); expect(count.closest("[data-no-advance]")).not.toBeNull();
     tap(count); expect(local().run.transitions).toEqual([]);
-    expect(screen.queryByText("자리가 가득 찼어요")).not.toBeInTheDocument();
+    expect(screen.queryByText(/자리가 가득 찼어요/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "공유 링크 만들기" })).not.toBeInTheDocument();
     expect(update).toHaveBeenLastCalledWith(code, local().run, { segments });
     await finish(); expect(update).toHaveBeenLastCalledWith(code, local().run, undefined);
     expect(local().run.status).toBe("finished"); expect(leave).not.toHaveBeenCalled();
+    expect(screen.getByText(`${MESSAGES.run.saved} · ${MESSAGES.run.sharedRestart}`)).toBeInTheDocument();
     click("다시 하기"); await flush(); expect(leave).toHaveBeenCalledOnce();
     expect(local().shareCode).toBeNull(); expect(screen.getByRole("button", { name: "공유 링크 만들기" })).toBeInTheDocument();
   });
@@ -75,8 +76,8 @@ describe("RunScreen sharing", () => {
     vi.spyOn(api, "updateShareState").mockResolvedValueOnce({ ok: false, code: "NOT_FOUND" });
     const save = vi.spyOn(api, "saveRecord");
     await open(); click("공유 링크 만들기"); await flush(); click("시작"); await flush();
-    expect(screen.getByText("공유 연결 끊김")).toHaveClass("text-xs", "text-neutral-400");
-    vi.spyOn(window, "confirm").mockReturnValue(true); click("중단"); await flush();
+    expect(screen.getByText("공유 연결 끊김").closest("[data-no-advance]")).not.toBeNull();
+    click("중단"); fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "중단" })); await flush();
     expect(api.updateShareState).toHaveBeenLastCalledWith(local().shareCode, local().run, { segments });
     expect(local().run.status).toBe("aborted"); expect(save).not.toHaveBeenCalled();
   });
@@ -98,13 +99,15 @@ describe("RunScreen sharing", () => {
 });
 
 describe("RunScreen", () => {
-  it("shows current segments, full-width start and edit/record links without a footer", async () => {
-    await open(); expect(screen.getByRole("heading", { name: timer.name })).toBeInTheDocument();
-    expect(screen.getByText("전체 1:30")).toBeInTheDocument();
+  it("shows current segments, total, a full-width start, a back link and the footer", async () => {
+    render(<RunScreen timerId={timer.id} contactEmail="help@example.test" />); await flush();
+    expect(screen.getByRole("heading", { level: 1, name: timer.name })).toBeInTheDocument();
+    expect(screen.getByText("구간 2개")).toBeInTheDocument();
+    expect(screen.getByText("합계 1:30")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "시작" })).toHaveClass("w-full");
-    expect(screen.getByRole("link", { name: "편집" })).toHaveAttribute("href", `/timers/${timer.id}`);
-    expect(screen.getByRole("link", { name: "기록" })).toHaveAttribute("href", `/timers/${timer.id}/records`);
-    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.run.startHint)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers");
+    expect(screen.getByRole("contentinfo")).toContainElement(screen.getByRole("link", { name: "help@example.test" }));
   });
   it("shows NOT_FOUND with a list link", async () => {
     await api.deleteTimer(timer.id); await open();
@@ -135,6 +138,14 @@ describe("RunScreen", () => {
     cleanup(); await open();
     expect(screen.getByText("2 / 2")).toBeInTheDocument();
     expect(screen.queryByText("수정")).not.toBeInTheDocument();
+  });
+  it("advances with the on-screen next button under the same cooldown and labels the last one as finish", async () => {
+    await open(); click("시작");
+    expect(screen.getByRole("button", { name: "다음" }).closest("[data-no-advance]")).toBeNull();
+    click("다음"); space(); expect(local().run.transitions).toHaveLength(1);
+    tick(500); click("종료");
+    expect(screen.getByText(MESSAGES.timerFace.finishHint)).toBeInTheDocument();
+    expect(local().run.status).toBe("running");
   });
   it("ignores a second advance within 500ms and disables undo only without transitions", async () => {
     await open(); click("시작");
@@ -177,9 +188,12 @@ describe("RunScreen", () => {
       expect.objectContaining({ name: "도입", plannedMs: 60_000, actualMs: 0 }),
       expect.objectContaining({ name: "결론", plannedMs: 30_000, actualMs: 1_000 }),
     ]);
-    expect(screen.getByText("기록을 저장했어요")).toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.run.saved)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: MESSAGES.run.finished })).toBeInTheDocument();
+    expect(screen.getByText(/계획 1:30 \/ 실제 0:01$/)).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "기록 보기" })).toHaveAttribute("href", `/timers/${timer.id}/records`);
+    expect(screen.getByRole("link", { name: "구간 고치기" })).toHaveAttribute("href", `/timers/${timer.id}`);
     space(); tick(5_000); await flush();
     expect(save).toHaveBeenCalledTimes(1); expect(persist).toHaveBeenCalledTimes(3);
   });
@@ -197,12 +211,14 @@ describe("RunScreen", () => {
     tick(500); space(); tick(500); space(); expect(local().run.status).toBe("running");
   });
   it("keeps running when abort confirmation is cancelled; confirmed abort persists without saving", async () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     const save = vi.spyOn(api, "saveRecord");
     await open(); click("시작"); click("중단");
-    expect(confirm).toHaveBeenCalledWith("발표를 중단할까요?");
+    const dialog = screen.getByRole("dialog", { name: MESSAGES.run.abortConfirm });
+    space(); expect(local().run.transitions).toEqual([]);
+    fireEvent.click(within(dialog).getByRole("button", { name: MESSAGES.common.cancel }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(local().run.status).toBe("running");
-    confirm.mockReturnValue(true); click("중단");
+    click("중단"); fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "중단" }));
     expect(local().run.status).toBe("aborted");
     expect(screen.getByText("발표를 중단했어요")).toBeInTheDocument();
     expect(save).not.toHaveBeenCalled();
@@ -215,14 +231,14 @@ describe("RunScreen", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("기록을 저장하지 못했어요");
     click("다시 저장"); await flush();
     expect(save).toHaveBeenCalledTimes(2);
-    expect(screen.getByText("기록을 저장했어요")).toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.run.saved)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "다시 저장" })).not.toBeInTheDocument();
   });
   it("does not save again when restored finished, including under StrictMode-like remounts", async () => {
     const save = vi.spyOn(api, "saveRecord"); device.saveRun(timer.id, saved("finished"));
     await open(); expect(screen.getByRole("table")).toBeInTheDocument();
     cleanup(); await open(); expect(save).not.toHaveBeenCalled();
-    expect(screen.queryByText("기록을 저장했어요")).not.toBeInTheDocument();
+    expect(screen.queryByText(MESSAGES.run.saved)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "다시 저장" })).not.toBeInTheDocument();
   });
   it("restores aborted state and snapshot", async () => {

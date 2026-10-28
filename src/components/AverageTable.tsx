@@ -6,22 +6,22 @@ const verdictColor = { late: "text-red-400", early: "text-blue-400", on_time: "t
 
 export function AverageTable({ rows }: { rows: AverageRow[] }) {
   return (
-    <table className="w-full table-fixed text-left text-sm text-neutral-300">
-      <thead className="border-b border-neutral-800 text-xs text-neutral-400">
+    <table className="data-table">
+      <thead>
         <tr>
-          <th scope="col" className="w-1/3 py-3 pr-2 font-medium">{MESSAGES.results.segment}</th>
-          <th scope="col" className="py-3 text-right font-medium">{MESSAGES.results.planned}</th>
-          <th scope="col" className="py-3 text-right font-medium">{MESSAGES.records.averageActual}</th>
-          <th scope="col" className="py-3 text-right font-medium">{MESSAGES.records.averageDifference}</th>
+          <th scope="col" className="w-1/3">{MESSAGES.results.segment}</th>
+          <th scope="col">{MESSAGES.results.planned}</th>
+          <th scope="col">{MESSAGES.records.averageActual}</th>
+          <th scope="col">{MESSAGES.records.averageDifference}</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-neutral-800">
+      <tbody>
         {rows.map((row, index) => (
           <tr key={index}>
-            <td className="break-words py-3 pr-2">{row.name}</td>
-            <td className="py-3 text-right tabular-nums">{formatDuration(row.plannedMs)}</td>
-            <td className="py-3 text-right tabular-nums">{formatDuration(row.actualMs)}</td>
-            <td className={`py-3 text-right tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</td>
+            <td>{row.name}</td>
+            <td className="tabular-nums text-soft">{formatDuration(row.plannedMs)}</td>
+            <td className="tabular-nums">{formatDuration(row.actualMs)}</td>
+            <td className={`tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</td>
           </tr>
         ))}
       </tbody>

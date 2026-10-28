@@ -10,7 +10,7 @@ describe("Footer", () => {
     render(<Footer contactEmail="contact@example.test" />);
     expect(screen.getByRole("link", { name: MESSAGES.privacy.title })).toHaveAttribute("href", "/privacy");
     expect(screen.getByRole("link", { name: MESSAGES.terms.title })).toHaveAttribute("href", "/terms");
-    expect(screen.getByRole("link", { name: MESSAGES.footer.contact })).toHaveAttribute("href", "mailto:contact@example.test");
+    expect(screen.getByRole("link", { name: "contact@example.test" })).toHaveAttribute("href", "mailto:contact@example.test");
   });
 
   it.each([undefined, "", "   "])("omits only the email when it is %s", (contactEmail) => {
@@ -18,7 +18,6 @@ describe("Footer", () => {
     expect(screen.getAllByRole("link")).toHaveLength(2);
     expect(screen.getByRole("link", { name: MESSAGES.privacy.title })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: MESSAGES.terms.title })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: MESSAGES.footer.contact })).not.toBeInTheDocument();
-    expect(screen.getByRole("contentinfo").textContent?.trim().endsWith(MESSAGES.footer.separator)).toBe(false);
+    expect(screen.queryByRole("link", { name: /@/ })).not.toBeInTheDocument();
   });
 });

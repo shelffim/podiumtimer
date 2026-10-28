@@ -65,6 +65,10 @@ describe("ViewerScreen", () => {
     expect(vi.mocked(device.saveNickname).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(device.markJoined).mock.invocationCallOrder[0]);
     expect(vi.mocked(device.markJoined).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(channel.track).mock.invocationCallOrder[0]);
     expect(screen.getByText("발표자가 시작하면 자동으로 시작돼요")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toHaveTextContent("학생");
+    expect(screen.getByText("대기실")).toBeInTheDocument();
+    expect(screen.getByText("구간 2개 · 합계 1:30")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
   it("automatically rejoins only this code with a valid saved nickname", async () => {
     await open(true); expect(device.hasJoined).toHaveBeenCalledWith("code");
@@ -87,11 +91,13 @@ describe("ViewerScreen", () => {
     await update(running);
     expect(screen.getByText("1 / 2")).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveClass("h-dvh", "overflow-hidden");
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument(); expect(screen.queryByText(/접속/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("1 / 2")); fireEvent.touchStart(screen.getByRole("main")); fireEvent.touchEnd(screen.getByRole("main"));
     fireEvent.keyDown(document, { key: " ", code: "Space" }); await flush();
     expect(screen.getByText("1 / 2")).toBeInTheDocument(); expect(channel.sendChanged).not.toHaveBeenCalled();
     await update({ ...running, status: "finished", transitions: [running.startedAt! + 72_000, running.startedAt! + 94_000], rev: 2 });
+    expect(screen.getByRole("heading", { name: "발표가 끝났어요" })).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument(); expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400");
     expect(screen.getByText("0:08 빠름")).toHaveClass("text-blue-400"); expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
@@ -116,7 +122,7 @@ describe("ViewerScreen", () => {
   it("shows connection loss while preserving the last view and recovers after retry", async () => {
     await open(true); vi.mocked(api.getShare).mockRejectedValueOnce(new Error());
     act(() => changed()); await tick(1_000);
-    expect(screen.getByText("연결 끊김")).toHaveClass("text-xs", "text-neutral-400");
+    expect(screen.getByText("연결 끊김")).toHaveAttribute("role", "status");
     expect(screen.getByText("발표자가 시작하면 자동으로 시작돼요")).toBeInTheDocument();
     await tick(1_000); expect(screen.queryByText("연결 끊김")).not.toBeInTheDocument();
   });

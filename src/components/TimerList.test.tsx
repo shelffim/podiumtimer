@@ -26,11 +26,13 @@ describe("TimerList", () => {
     const row = screen.getByText("발표 0").closest("li")!;
     const timers = await api.listTimers();
     if (!timers.ok) throw new Error();
-    expect(within(row).getByText("구간 1개 · 전체 1:05")).toBeInTheDocument();
+    expect(within(row).getByText("1구간 · 합계 1:05")).toBeInTheDocument();
     for (const [name, suffix] of [["시작", "/run"], ["편집", ""], ["기록", "/records"]]) {
       expect(within(row).getByRole("link", { name })).toHaveAttribute("href", `/timers/${timers.data[0].id}${suffix}`);
     }
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("link", { name: "30일권 구매" }));
     expect(screen.getByRole("link", { name: "30일권 구매" })).toHaveAttribute("href", "/pricing?returnTo=/timers");
+    expect(screen.getByRole("heading", { level: 1, name: "내 타이머" })).toBeInTheDocument();
   });
 
   it("keeps new timer enabled at three timers and shows an inline upgrade notice", async () => {
@@ -46,13 +48,13 @@ describe("TimerList", () => {
     expect(button).toBeEnabled();
   });
 
-  it("opens creation from the empty state and normal new timer button", async () => {
+  it("opens creation from the empty state, which replaces the header button", async () => {
     const user = userEvent.setup();
     render(<TimerList />);
-    await user.click(await screen.findByRole("button", { name: "첫 타이머 만들기" }));
+    expect(await screen.findByText("첫 타이머를 만들어 보세요")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /새 타이머/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "첫 타이머 만들기" }));
     expect(navigation.push).toHaveBeenCalledWith("/timers/new");
-    await user.click(screen.getByRole("button", { name: /새 타이머/ }));
-    expect(navigation.push).toHaveBeenCalledTimes(2);
   });
 
   it("shows a pass expiry and allows new timers beyond free usage", async () => {

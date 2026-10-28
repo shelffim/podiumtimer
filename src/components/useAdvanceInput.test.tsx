@@ -5,8 +5,8 @@ import { useAdvanceInput } from "./useAdvanceInput";
 
 function Harness({ enabled = true, advance }: { enabled?: boolean; advance: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  useAdvanceInput({ enabled, targetRef: ref, onAdvance: advance });
-  return <><header data-testid="header" /><div ref={ref} data-testid="area">
+  const trigger = useAdvanceInput({ enabled, targetRef: ref, onAdvance: advance });
+  return <><header data-testid="header" /><button type="button" data-testid="trigger" onClick={trigger}>next</button><div ref={ref} data-testid="area">
     <span data-testid="text" /><button><span>button</span></button><a href="#">link</a>
     <div data-no-advance><span>excluded</span></div>
     <input aria-label="input" /><textarea aria-label="textarea" /><select aria-label="select" />
@@ -31,11 +31,21 @@ describe("useAdvanceInput", () => {
     expect(advance).toHaveBeenCalledTimes(2);
     space(); expect(advance).toHaveBeenCalledTimes(2);
   });
+  it("returns a trigger for an on-screen button that shares the cooldown and respects enabled", () => {
+    const advance = vi.fn();
+    const { rerender } = render(<Harness advance={advance} />);
+    fireEvent.click(screen.getByTestId("trigger")); expect(advance).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(499); space(); fireEvent.click(screen.getByTestId("trigger"));
+    expect(advance).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(1); space(); expect(advance).toHaveBeenCalledTimes(2);
+    vi.advanceTimersByTime(500); rerender(<Harness enabled={false} advance={advance} />);
+    fireEvent.click(screen.getByTestId("trigger")); expect(advance).toHaveBeenCalledTimes(2);
+  });
   it("does not advance on repeat and prevents a focused button's default Space action", () => {
     const advance = vi.fn(); render(<Harness advance={advance} />);
     expect(space(document, true)).toBe(false);
     expect(advance).not.toHaveBeenCalled();
-    const button = screen.getByRole("button"); button.focus();
+    const button = screen.getByRole("button", { name: "button" }); button.focus();
     expect(space(button)).toBe(false); expect(advance).toHaveBeenCalledOnce();
   });
   it.each(["input", "textarea", "select"])("ignores Space while %s is focused even if dispatched on document", (label) => {

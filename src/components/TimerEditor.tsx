@@ -1,27 +1,26 @@
 "use client";
 
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MESSAGES, errorMessage, planLimitMessage, segmentFieldLabel, totalTimeLabel } from "@/lib/messages";
+import { LIMITS } from "@/lib/billing";
+import { MESSAGES, errorMessage, planLimitMessage, segmentFieldLabel, segmentUsageLabel } from "@/lib/messages";
 import { formatDuration, totalPlannedMs } from "@/lib/timer";
 import { parseClock, timerInputSchema } from "@/lib/validation";
 import { api } from "@/services/api";
 import type { ErrorCode, Plan } from "@/types/api";
 import type { TimerInput } from "@/types/timer";
+import { AppBar } from "./AppBar";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Icon } from "./Icon";
+import { LimitNotice } from "./LimitNotice";
 
 // 새로 만들기 → 편집 경로 전환에서만 한 번 전달하는 화면 안내예요.
 // 타이머 데이터는 이 값에 의존하지 않고 항상 api에서 읽어요.
 let creationNoticeId: string | null = null;
 
 const copy = MESSAGES.timers;
-const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
-const button = `inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-4 transition-colors duration-150 ${focus}`;
-const primary = `${button} bg-neutral-50 font-medium text-neutral-950 hover:bg-neutral-200`;
-const secondary = `${button} border border-neutral-700 text-neutral-100 hover:bg-neutral-900`;
-const textLink = `inline-flex min-h-11 min-w-11 items-center rounded-md text-sm text-neutral-400 hover:text-neutral-200 ${focus}`;
-const inputClass = `h-11 w-full min-w-0 rounded-md border border-neutral-800 bg-neutral-900 px-3 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-500 focus:outline-none ${focus}`;
-const iconButton = `inline-flex h-11 w-11 items-center justify-center text-neutral-400 hover:text-neutral-200 disabled:text-neutral-500 ${focus}`;
+const segmentGrid = "grid grid-cols-[28px_minmax(0,1fr)_96px_36px] items-center gap-2";
 
 export function TimerEditor({ timerId }: { timerId?: string }) {
   const router = useRouter();
@@ -34,6 +33,14 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
   const [notFound, setNotFound] = useState(false);
   const [busy, setBusy] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const focusGrip = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (focusGrip.current === null) return;
+    document.querySelector<HTMLElement>(`[data-grip="${focusGrip.current}"]`)?.focus();
+    focusGrip.current = null;
+  });
 
   useEffect(() => {
     let active = true;
@@ -78,14 +85,43 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
     setForm((current) => current && ({ ...current, segments: current.segments.map((s) => s.id === id ? { ...s, [field]: value } : s) }));
   }
 
-  function moveSegment(index: number, direction: -1 | 1) {
+  function moveSegment(from: number, to: number) {
     clearFeedback();
     setForm((current) => {
-      if (!current || index + direction < 0 || index + direction >= current.segments.length) return current;
+      if (!current || from === to || to < 0 || to >= current.segments.length) return current;
       const segments = [...current.segments];
-      [segments[index], segments[index + direction]] = [segments[index + direction], segments[index]];
+      const [moved] = segments.splice(from, 1);
+      segments.splice(to, 0, moved);
       return { ...current, segments };
     });
+  }
+
+  function moveWithKey(event: KeyboardEvent<HTMLButtonElement>, index: number, id: string) {
+    const step = event.key === "ArrowUp" ? -1 : event.key === "ArrowDown" ? 1 : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    focusGrip.current = id;
+    moveSegment(index, index + step);
+  }
+
+  function startDrag(event: PointerEvent<HTMLButtonElement>, index: number) {
+    event.preventDefault();
+    let from = index;
+    function move(moveEvent: globalThis.PointerEvent) {
+      const row = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest<HTMLElement>("[data-seg]");
+      const to = row ? Number(row.dataset.seg) : from;
+      if (to === from) return;
+      moveSegment(from, to);
+      from = to;
+    }
+    function end() {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
   }
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -129,7 +165,7 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
   }
 
   async function deleteTimer() {
-    if (!timerId || busy || !window.confirm(copy.deleteConfirm)) return;
+    if (!timerId || busy) return;
     clearFeedback(); setBusy(true);
     try {
       const result = await api.deleteTimer(timerId);
@@ -143,76 +179,84 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
   const total = form ? totalPlannedMs(form.segments.map((s) => ({ id: s.id, name: s.name, durationSec: parseClock(s.clock) ?? 0 }))) : 0;
   const fieldId = (key: string) => `${formId}-${key}`;
 
-  return (
-    <section className="space-y-8">
-      <div className="space-y-3">
-        <Link href="/timers" className={textLink}>{copy.backToList}</Link>
-        <h1 className="text-2xl font-semibold text-neutral-50">{timerId ? copy.editTitle : copy.createTitle}</h1>
-      </div>
-      {notFound ? <p role="alert" className="text-sm text-red-400">{copy.notFound}</p> : <>
+  return <>
+    <AppBar back="/timers" title={timerId ? copy.editTitle : copy.createTitle} />
+    <div className="page page-narrow">
+      {notFound ? <div className="flex flex-col items-start gap-3">
+        <p role="alert" className="text-sm text-red-400">{copy.notFound}</p>
+        <Link href="/timers" className="btn btn-secondary">{copy.backToList}</Link>
+      </div> : <>
         {failure && <p role="alert" className="text-sm text-red-400">{failure}</p>}
-        {!form && !failure && <p className="text-sm text-neutral-400">{copy.loading}</p>}
-        {limit && <div role="status" className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-          <p>{planLimitMessage(limit, plan)}</p>
-          {plan === "free" && <Link href={`/pricing?returnTo=${encodeURIComponent(path)}`} className={textLink}>{copy.viewPass}</Link>}
-        </div>}
-        {savedId && <div role="status" className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-          <p>{copy.saved}</p>
-          <Link href={`/timers/${savedId}/run`} className={textLink}>{copy.rehearse}</Link>
-        </div>}
-        {form && <form onSubmit={save} noValidate>
-          <fieldset disabled={busy} className="min-w-0 space-y-8">
-            <div className="space-y-2">
-              <label htmlFor={fieldId("name")} className="text-xs text-neutral-400">{copy.timerName}</label>
-              <input id={fieldId("name")} className={inputClass} value={form.name} onChange={(e) => { clearFeedback(); setForm({ ...form, name: e.target.value }); }} aria-invalid={!!fields.name} aria-describedby={fields.name ? fieldId("name-error") : undefined} />
-              {fields.name && <p id={fieldId("name-error")} className="text-sm text-red-400">{fields.name}</p>}
+        {!form && !failure && <p className="text-sm text-soft">{copy.loading}</p>}
+        {form && <form onSubmit={save} noValidate className="flex flex-col gap-6">
+          <fieldset disabled={busy} className="flex min-w-0 flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor={fieldId("name")} className="label">{copy.timerName}</label>
+              <input id={fieldId("name")} className="field" placeholder={copy.namePlaceholder} value={form.name}
+                onChange={(e) => { clearFeedback(); setForm({ ...form, name: e.target.value }); }}
+                aria-invalid={!!fields.name} aria-describedby={fields.name ? fieldId("name-error") : undefined} />
+              {fields.name && <p id={fieldId("name-error")} className="text-[13px] text-red-400">{fields.name}</p>}
             </div>
-            <div className="space-y-4">
-              <h2 className="text-sm font-medium text-neutral-400">{copy.segments}</h2>
-              <ol className="divide-y divide-neutral-800">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="label">{copy.segments}</h2>
+                <span className="caption tabular-nums">{segmentUsageLabel(form.segments.length, plan === "free" ? LIMITS.free.segments : null, total)}</span>
+              </div>
+              <div aria-hidden="true" className={`${segmentGrid} -mb-1 caption`}>
+                <span /><span>{copy.segmentName}</span><span className="text-right">{copy.clockColumn}</span><span />
+              </div>
+              <ol className="flex flex-col gap-3">
                 {form.segments.map((segment, index) => {
                   const nameKey = `segments.${index}.name`;
                   const clockKey = `segments.${index}.durationSec`;
-                  return <li key={segment.id} className="space-y-3 py-4">
-                    <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
-                      <div className="space-y-2">
-                        <label htmlFor={fieldId(nameKey)} className="text-xs text-neutral-400">{segmentFieldLabel(index, "name")}</label>
-                        <input id={fieldId(nameKey)} className={inputClass} value={segment.name} onChange={(e) => updateSegment(segment.id, "name", e.target.value)} aria-invalid={!!fields[nameKey]} aria-describedby={fields[nameKey] ? fieldId(`${nameKey}-error`) : undefined} />
-                        {fields[nameKey] && <p id={fieldId(`${nameKey}-error`)} className="text-sm text-red-400">{fields[nameKey]}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor={fieldId(clockKey)} className="text-xs text-neutral-400">{segmentFieldLabel(index, "clock")}</label>
-                        <input id={fieldId(clockKey)} className={`${inputClass} tabular-nums`} placeholder={copy.clockPlaceholder} value={segment.clock} onChange={(e) => updateSegment(segment.id, "clock", e.target.value)} aria-invalid={!!fields[clockKey]} aria-describedby={fields[clockKey] ? fieldId(`${clockKey}-error`) : undefined} />
-                        {fields[clockKey] && <p id={fieldId(`${clockKey}-error`)} className="text-sm text-red-400">{fields[clockKey]}</p>}
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button type="button" className={iconButton} aria-label={copy.moveUp} disabled={index === 0} onClick={() => moveSegment(index, -1)}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 14 6-6 6 6" /></svg>
+                  return <li key={segment.id} data-seg={index} className="flex flex-col gap-1">
+                    <div className={segmentGrid}>
+                      <button type="button" data-grip={segment.id} aria-label={segmentFieldLabel(index, "reorder")}
+                        onPointerDown={(e) => startDrag(e, index)} onKeyDown={(e) => moveWithKey(e, index, segment.id)}
+                        className="focus-ring flex h-11 cursor-grab touch-none items-center justify-center rounded-md text-muted active:cursor-grabbing">
+                        <Icon name="grip" size={18} />
                       </button>
-                      <button type="button" className={iconButton} aria-label={copy.moveDown} disabled={index === form.segments.length - 1} onClick={() => moveSegment(index, 1)}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m6 10 6 6 6-6" /></svg>
-                      </button>
-                      <button type="button" className={iconButton} aria-label={copy.removeSegment} onClick={() => { clearFeedback(); setForm({ ...form, segments: form.segments.filter((s) => s.id !== segment.id) }); }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" /></svg>
+                      <input aria-label={segmentFieldLabel(index, "name")} className="field" placeholder={`${copy.segments} ${index + 1}`} value={segment.name}
+                        onChange={(e) => updateSegment(segment.id, "name", e.target.value)}
+                        aria-invalid={!!fields[nameKey]} aria-describedby={fields[nameKey] ? fieldId(`${nameKey}-error`) : undefined} />
+                      <input aria-label={segmentFieldLabel(index, "clock")} className="field text-right tabular-nums" placeholder={copy.clockPlaceholder} value={segment.clock}
+                        onChange={(e) => updateSegment(segment.id, "clock", e.target.value)}
+                        aria-invalid={!!fields[clockKey]} aria-describedby={fields[clockKey] ? fieldId(`${clockKey}-error`) : undefined} />
+                      <button type="button" aria-label={segmentFieldLabel(index, "remove")}
+                        onClick={() => { clearFeedback(); setForm({ ...form, segments: form.segments.filter((s) => s.id !== segment.id) }); }}
+                        className="focus-ring flex h-11 items-center justify-center rounded-md text-muted hover:text-white">
+                        <Icon name="x" size={18} />
                       </button>
                     </div>
+                    {(fields[nameKey] || fields[clockKey]) && <p className="pl-9 text-[13px] text-red-400">
+                      {fields[nameKey] && <span id={fieldId(`${nameKey}-error`)}>{fields[nameKey]}</span>}
+                      {fields[nameKey] && fields[clockKey] && " · "}
+                      {fields[clockKey] && <span id={fieldId(`${clockKey}-error`)}>{fields[clockKey]}</span>}
+                    </p>}
                   </li>;
                 })}
               </ol>
-              {fields.segments && <p className="text-sm text-red-400">{fields.segments}</p>}
-              <button type="button" className={secondary} onClick={() => { clearFeedback(); setForm({ ...form, segments: [...form.segments, { id: crypto.randomUUID(), name: "", clock: "" }] }); }}>{copy.addSegment}</button>
-              <p className="text-sm tabular-nums text-neutral-300">{totalTimeLabel(total)}</p>
+              <button type="button" className="btn btn-secondary w-full" onClick={() => { clearFeedback(); setForm({ ...form, segments: [...form.segments, { id: crypto.randomUUID(), name: "", clock: "" }] }); }}>
+                <Icon name="plus" size={18} />{copy.addSegment}
+              </button>
+              {fields.segments && <p className="text-[13px] text-red-400">{fields.segments}</p>}
             </div>
-            <button type="submit" className={primary}>{copy.save}</button>
           </fieldset>
+          {limit && <LimitNotice text={planLimitMessage(limit, plan)} pricingHref={plan === "free" ? `/pricing?returnTo=${encodeURIComponent(path)}` : undefined} />}
+          {savedId ? <div role="status" className="card items-start">
+            <p className="label flex items-center gap-2"><Icon name="check" size={18} />{copy.saved}</p>
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/timers/${savedId}/run`} className="btn btn-primary"><Icon name="play" size={18} />{copy.rehearse}</Link>
+              <Link href="/timers" className="btn btn-secondary">{copy.backToList}</Link>
+            </div>
+          </div> : <button type="submit" disabled={busy} className="btn btn-primary btn-lg w-full">{copy.save}</button>}
         </form>}
-        {timerId && form && <div className="flex flex-wrap items-center gap-4">
-          <Link href={`/timers/${timerId}/run`} className={secondary}>{copy.start}</Link>
-          <Link href={`/timers/${timerId}/records`} className={secondary}>{copy.records}</Link>
-          <button type="button" disabled={busy} onClick={deleteTimer} className={`${button} border border-red-500/40 text-red-400 hover:bg-red-500/10`}>{copy.deleteTimer}</button>
+        {timerId && form && <div>
+          <button type="button" disabled={busy} onClick={() => setConfirmingDelete(true)} className="btn-text">{copy.deleteTimer}</button>
         </div>}
       </>}
-    </section>
-  );
+    </div>
+    {confirmingDelete && <ConfirmDialog title={copy.deleteConfirm} description={copy.deleteDescription} confirmLabel={copy.delete}
+      onCancel={() => setConfirmingDelete(false)} onConfirm={() => { setConfirmingDelete(false); void deleteTimer(); }} />}
+  </>;
 }

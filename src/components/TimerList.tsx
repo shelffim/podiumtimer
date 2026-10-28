@@ -9,11 +9,11 @@ import { totalPlannedMs } from "@/lib/timer";
 import { api } from "@/services/api";
 import type { PlanStatus } from "@/types/api";
 import type { Timer } from "@/types/timer";
+import { AppBar } from "./AppBar";
+import { Icon } from "./Icon";
+import { LimitNotice } from "./LimitNotice";
 
 const copy = MESSAGES.timers;
-const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400";
-const primary = `inline-flex min-h-11 items-center justify-center rounded-md bg-neutral-50 px-4 font-medium text-neutral-950 transition-colors duration-150 hover:bg-neutral-200 ${focus}`;
-const textLink = `inline-flex min-h-11 min-w-11 items-center rounded-md text-sm text-neutral-400 hover:text-neutral-200 ${focus}`;
 
 export function TimerList() {
   const router = useRouter();
@@ -57,40 +57,46 @@ export function TimerList() {
     }
   }
 
-  return (
-    <section className="space-y-8">
-      <h1 className="text-2xl font-semibold text-neutral-50">{copy.title}</h1>
-      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
-      {!data && !error && <p className="text-sm text-neutral-400">{copy.loading}</p>}
+  return <>
+    <AppBar>
       {data && <>
-        <div className="space-y-3">
-          <p className="text-sm text-neutral-300">{planLabel(data.status.plan, data.status.expiresAt)}</p>
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/pricing?returnTo=/timers" className={textLink}>{copy.buyPass}</Link>
-            <button type="button" onClick={signOut} disabled={signingOut} className={textLink}>{copy.signOut}</button>
-          </div>
-          <button type="button" className={primary} onClick={createTimer}>
-            {copy.newTimer}{data.status.plan === "free" && <span className="ml-2 tabular-nums">{data.status.timerCount}/{LIMITS.free.timers}</span>}
-          </button>
-        </div>
-        {notice && <div role="status" className="rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-          <p>{notice}</p>
-          <Link href="/pricing?returnTo=/timers" className={textLink}>{copy.viewPass}</Link>
-        </div>}
-        {data.timers.length === 0
-          ? <button type="button" className={primary} onClick={createTimer}>{copy.firstTimer}</button>
-          : <ul className="divide-y divide-neutral-800">
-            {data.timers.map((timer) => <li key={timer.id} className="space-y-3 py-4">
-              <h2 className="break-words font-medium text-neutral-50">{timer.name}</h2>
-              <p className="text-sm tabular-nums text-neutral-400">{timerSummary(timer.segments.length, totalPlannedMs(timer.segments))}</p>
-              <div className="flex flex-wrap gap-4">
-                <Link href={`/timers/${timer.id}/run`} className={textLink}>{copy.start}</Link>
-                <Link href={`/timers/${timer.id}`} className={textLink}>{copy.edit}</Link>
-                <Link href={`/timers/${timer.id}/records`} className={textLink}>{copy.records}</Link>
-              </div>
-            </li>)}
-          </ul>}
+        <span className="chip">{planLabel(data.status.plan, data.status.expiresAt)}</span>
+        <Link href="/pricing?returnTo=/timers" className={`btn-text text-sm ${data.status.plan === "pass" ? "hidden sm:inline-flex" : ""}`}>{copy.buyPass}</Link>
+        <button type="button" onClick={signOut} disabled={signingOut} aria-label={copy.signOut} title={copy.signOut} className="icon-btn">
+          <Icon name="log-out" size={18} />
+        </button>
       </>}
-    </section>
-  );
+    </AppBar>
+    <div className="page">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="title">{copy.title}</h1>
+        {data && data.timers.length > 0 && <button type="button" className="btn btn-primary" onClick={createTimer}>
+          <Icon name="plus" size={18} />{copy.newTimer}
+          {data.status.plan === "free" && <span className="font-medium tabular-nums opacity-85">{data.status.timerCount}/{LIMITS.free.timers}</span>}
+        </button>}
+      </div>
+      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+      {!data && !error && <p className="text-sm text-soft">{copy.loading}</p>}
+      {notice && <LimitNotice text={notice} pricingHref="/pricing?returnTo=/timers" />}
+      {data && (data.timers.length === 0
+        ? <div className="card items-start p-8">
+          <h2 className="heading">{copy.emptyTitle}</h2>
+          <p className="text-sm text-soft">{copy.emptyDescription}</p>
+          <button type="button" className="btn btn-primary" onClick={createTimer}><Icon name="plus" size={18} />{copy.firstTimer}</button>
+        </div>
+        : <ul className="grid gap-3 md:grid-cols-2">
+          {data.timers.map((timer) => <li key={timer.id} className="card">
+            <div className="flex flex-col gap-1">
+              <h2 className="heading">{timer.name}</h2>
+              <p className="text-sm text-soft tabular-nums">{timerSummary(timer.segments.length, totalPlannedMs(timer.segments))}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href={`/timers/${timer.id}/run`} className="btn btn-primary"><Icon name="play" size={18} />{copy.start}</Link>
+              <Link href={`/timers/${timer.id}`} className="btn btn-secondary">{copy.edit}</Link>
+              <Link href={`/timers/${timer.id}/records`} className="btn btn-secondary">{copy.records}</Link>
+            </div>
+          </li>)}
+        </ul>)}
+    </div>
+  </>;
 }

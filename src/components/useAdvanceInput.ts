@@ -1,30 +1,38 @@
 "use client";
 
-import { useEffect, useEffectEvent, type RefObject } from "react";
+import { useCallback, useEffect, useRef, type RefObject } from "react";
 
+/** Wires Space and touch taps to onAdvance, and returns the same guarded trigger for an on-screen button. */
 export function useAdvanceInput({ enabled, targetRef, onAdvance }: {
   enabled: boolean;
   targetRef: RefObject<HTMLElement | null>;
   onAdvance: () => void;
-}): void {
-  const advance = useEffectEvent(onAdvance);
+}): () => void {
+  const callback = useRef(onAdvance);
+  const enabledRef = useRef(enabled);
+  const lastAt = useRef(-Infinity);
+  useEffect(() => {
+    callback.current = onAdvance;
+    enabledRef.current = enabled;
+  });
+
+  const attempt = useCallback(() => {
+    if (!enabledRef.current) return;
+    const at = Date.now();
+    if (at - lastAt.current < 500) return;
+    lastAt.current = at;
+    callback.current();
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
     const target = targetRef.current;
-    let lastAt = -Infinity;
     let pointer: { id: number; x: number; y: number; moved: boolean } | null = null;
     const excluded = (node: EventTarget | null) => node instanceof Element
       && !!node.closest("button, a, [data-no-advance]");
     const editing = (node: EventTarget | null) => node instanceof Element
       && !!node.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])');
 
-    function attempt() {
-      const at = Date.now();
-      if (at - lastAt < 500) return;
-      lastAt = at;
-      advance();
-    }
     function keydown(event: KeyboardEvent) {
       if (event.code !== "Space" || editing(event.target) || editing(document.activeElement)) return;
       event.preventDefault();
@@ -58,5 +66,7 @@ export function useAdvanceInput({ enabled, targetRef, onAdvance }: {
       target?.removeEventListener("pointerup", up);
       target?.removeEventListener("pointercancel", cancel);
     };
-  }, [enabled, targetRef]);
+  }, [enabled, targetRef, attempt]);
+
+  return attempt;
 }
