@@ -300,6 +300,7 @@ export const MESSAGES = {
     segmentIdRequired: "구간 식별자를 확인해 주세요",
     clockFormat: "시간은 분:초 형식으로 입력해 주세요",
     durationRange: "구간 시간은 5초부터 3시간까지 정수로 입력해 주세요",
+    segmentsRequired: "구간을 1개 이상 추가해 주세요",
     segmentLimit: `구간은 ${LIMITS.pass.segments}개까지 넣을 수 있어요`,
     nicknameLength: "닉네임은 1자부터 20자까지 입력해 주세요",
     recordSegmentsRequired: "기록할 구간이 하나 이상 필요해요",

@@ -24,7 +24,8 @@ export const segmentSchema = z.object({
 
 export const timerInputSchema = z.object({
   name: nameSchema(TIMER_NAME_MAX, copy.timerNameTooLong),
-  segments: z.array(segmentSchema, { error: copy.invalidInput }).max(LIMITS.pass.segments, { error: copy.segmentLimit }),
+  segments: z.array(segmentSchema, { error: copy.invalidInput })
+    .min(1, { error: copy.segmentsRequired }).max(LIMITS.pass.segments, { error: copy.segmentLimit }),
 }, { error: copy.invalidInput });
 
 // 기기에 잠깐 맡긴 편집 폼의 모양만 확인해요. 값 검사는 저장할 때 timerInputSchema로 해요.

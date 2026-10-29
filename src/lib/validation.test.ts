@@ -11,13 +11,20 @@ describe("input schemas", () => {
     expect([TIMER_NAME_MAX, SEGMENT_NAME_MAX, NICKNAME_MAX, SEGMENT_MIN_SEC, SEGMENT_MAX_SEC]).toEqual([60, 40, 20, 5, 10_800]);
   });
 
-  it("trims names and permits an empty segment list", () => {
-    expect(timerInputSchema.parse({ name: " 발표 ", segments: [] })).toEqual({ name: "발표", segments: [] });
+  it("trims names", () => {
+    expect(timerInputSchema.parse({ name: " 발표 ", segments: [segment] })).toEqual({ name: "발표", segments: [segment] });
     expect(segmentSchema.parse({ ...segment, name: " 도입 " }).name).toBe("도입");
   });
 
+  it("requires at least one segment", () => {
+    const result = timerInputSchema.safeParse({ name: "발표", segments: [] });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues).toMatchObject([{ path: ["segments"], message: MESSAGES.validation.segmentsRequired }]);
+  });
+
   it.each([[60, true], [61, false], [0, false]])("validates timer name length %i", (length, success) => {
-    expect(timerInputSchema.safeParse({ name: "가".repeat(length), segments: [] }).success).toBe(success);
+    expect(timerInputSchema.safeParse({ name: "가".repeat(length), segments: [segment] }).success).toBe(success);
   });
 
   it.each([[40, true], [41, false], [0, false]])("validates segment name length %i", (length, success) => {
@@ -31,7 +38,7 @@ describe("input schemas", () => {
   it("requires an id, rejects blank names and applies the absolute segment cap", () => {
     expect(segmentSchema.safeParse({ ...segment, id: "" }).success).toBe(false);
     expect(segmentSchema.safeParse({ ...segment, name: "  " }).success).toBe(false);
-    expect(timerInputSchema.safeParse({ name: "  ", segments: [] }).success).toBe(false);
+    expect(timerInputSchema.safeParse({ name: "  ", segments: [segment] }).success).toBe(false);
     for (const length of [LIMITS.free.segments + 1, LIMITS.pass.segments, LIMITS.pass.segments + 1]) {
       expect(timerInputSchema.safeParse({ name: "발표", segments: Array.from({ length }, () => ({ ...segment })) }).success).toBe(length <= LIMITS.pass.segments);
     }

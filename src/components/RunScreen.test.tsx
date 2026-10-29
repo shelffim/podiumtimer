@@ -120,7 +120,8 @@ describe("RunScreen", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(MESSAGES.appError.title);
   });
   it("does not allow starting with zero segments", async () => {
-    await api.updateTimer(timer.id, { name: timer.name, segments: [] }); await open();
+    // 구간 0개 저장을 막기 전에 저장된 타이머예요.
+    localStorage.setItem("mock:timers", JSON.stringify([{ ...timer, segments: [] }])); await open();
     expect(screen.queryByRole("button", { name: "시작" })).not.toBeInTheDocument();
     expect(screen.getByText("구간을 추가해야 시작할 수 있어요")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "편집" })).toHaveClass("btn-primary");
