@@ -69,7 +69,7 @@ describe("RecordsView", () => {
     expect(toggles.map((button) => button.querySelector("time")!.textContent)).toEqual([recordDateLabel(newer), recordDateLabel(older)]);
     const row = latest.closest("li")!;
     expect(latest).toHaveAccessibleDescription("실제 0:52 · 계획 1:00 0:08 빠름");
-    expect(within(row).getByText("0:08 빠름")).toHaveClass("text-blue-400");
+    expect(within(row).getByText("0:08 빠름")).toHaveClass("text-blue-400", "verdict");
     expect(within(toggles[1].closest("li")!).getByText("0:12 늦음")).toHaveClass("text-red-400");
     expect(within(row).queryByRole("table")).not.toBeInTheDocument();
     await user.click(latest);

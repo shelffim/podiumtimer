@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MESSAGES } from "@/lib/messages";
 import { createIdleRun } from "@/lib/timer";
 import { api, device } from "@/services/api";
 import { joinShareChannel, type ShareChannel } from "@/services/realtime";
@@ -67,7 +68,7 @@ describe("ViewerScreen", () => {
     expect(screen.getByText("발표자가 시작하면 자동으로 시작돼요")).toBeInTheDocument();
     expect(screen.getByRole("banner")).toHaveTextContent("학생");
     expect(screen.getByText("대기실")).toBeInTheDocument();
-    expect(screen.getByText("구간 2개 · 합계 1:30")).toBeInTheDocument();
+    expect(screen.getByText("구간 2개")).toBeInTheDocument(); expect(screen.getByText("합계 1:30")).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
   it("automatically rejoins only this code with a valid saved nickname", async () => {
@@ -87,6 +88,8 @@ describe("ViewerScreen", () => {
   it("changes from idle to running to finished using the shared snapshot, without viewer controls", async () => {
     await open(); await enter();
     expect(screen.getByText("발표자가 시작하면 자동으로 시작돼요")).toBeInTheDocument();
+    expect(screen.getByText("구간 2개")).toBeInTheDocument(); expect(screen.getByText("합계 1:30")).toBeInTheDocument();
+    expect(document.querySelectorAll("[data-block]")).toHaveLength(2);
     const running: RunState = { status: "running", startedAt: Date.now() + 200, transitions: [], rev: 1 };
     await update(running);
     expect(screen.getByText("1 / 2")).toBeInTheDocument();
@@ -100,6 +103,7 @@ describe("ViewerScreen", () => {
     expect(screen.getByRole("heading", { name: "발표가 끝났어요" })).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument(); expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400");
     expect(screen.getByText("0:08 빠름")).toHaveClass("text-blue-400"); expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.viewer.finishedHint)).toBeInTheDocument();
   });
   it.each(["running", "finished", "aborted"] as const)("shows %s when entering a link after that state", async (status) => {
     share = { ...share, state: { status, startedAt: 10_000, transitions: status === "finished" ? [20_000, 30_000] : [], rev: 3 }, rev: 3 };
@@ -111,6 +115,7 @@ describe("ViewerScreen", () => {
   it("transitions to aborted and to missing after the timer is deleted", async () => {
     await open(true); await update({ status: "aborted", startedAt: 10_000, transitions: [], rev: 1 });
     expect(screen.getByText("발표가 중단되었어요")).toBeInTheDocument();
+    expect(screen.getByText(MESSAGES.viewer.abortedHint)).toBeInTheDocument();
     vi.mocked(api.getShare).mockResolvedValueOnce({ ok: false, code: "NOT_FOUND" }); act(() => changed()); await tick(1_000);
     expect(screen.getByText("존재하지 않는 링크예요")).toBeInTheDocument();
   });

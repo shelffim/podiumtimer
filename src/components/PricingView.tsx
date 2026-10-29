@@ -11,15 +11,16 @@ import { Icon } from "./Icon";
 
 const copy = MESSAGES.pricing;
 
-function Tier({ name, price, period, features, children }: {
+function Tier({ name, price, period, features, featured = false, children }: {
   name: string;
   price: string;
   period?: string;
   features: readonly string[];
+  featured?: boolean;
   children?: ReactNode;
 }) {
   const id = useId();
-  return <section aria-labelledby={id} className="card gap-6 p-8">
+  return <section aria-labelledby={id} className={`card gap-6 p-8 ${featured ? "ring-1 ring-white/20 ring-inset" : ""}`}>
     <h3 id={id} className="heading">{name}</h3>
     <p className="flex items-baseline gap-1.5">
       <span className="text-[44px] leading-none tracking-[-1px] text-white tabular-nums">{price}</span>
@@ -77,14 +78,15 @@ export function PricingView({ returnTo }: { returnTo: string }) {
         <p className="text-sm text-soft">{copy.description}</p>
       </div>
       {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+      {/* 30일권과 구매 버튼이 폰 첫 화면에 보이도록 30일권 카드를 먼저 둬요. */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Tier name={MESSAGES.timers.free} price={copy.freePrice} features={copy.freeFeatures}>
-          {status?.plan === "free" && <button type="button" disabled className="btn btn-secondary w-full">{copy.current}</button>}
-        </Tier>
-        <Tier name={MESSAGES.timers.pass} price={copy.price} period={copy.period} features={copy.passFeatures}>
+        <Tier name={MESSAGES.timers.pass} price={copy.price} period={copy.period} features={copy.passFeatures} featured>
           <button type="button" onClick={purchase} disabled={purchasing} className="btn btn-primary btn-lg w-full">
             {dataMode === "mock" ? copy.mockBuy : status?.plan === "pass" ? copy.extend : copy.buy}
           </button>
+        </Tier>
+        <Tier name={MESSAGES.timers.free} price={copy.freePrice} features={copy.freeFeatures}>
+          {status?.plan === "free" && <button type="button" disabled className="btn btn-secondary w-full">{copy.current}</button>}
         </Tier>
       </div>
       <p className="caption">{copy.note} <Link href="/terms" className="focus-ring rounded-sm text-white underline underline-offset-2">{MESSAGES.terms.title}</Link>{copy.noteTail}</p>

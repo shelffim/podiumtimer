@@ -37,10 +37,25 @@ describe("TimerFace", () => {
       const lastResult = toSegmentResult({ name: "찬성 입론", plannedMs: 60_000, actualMs: 60_000 + diff });
       render(<TimerFace segments={segments} view={{ ...view, segmentIndex: 1, lastResult }} />);
       expect(screen.getByText("직전 구간 · 찬성 입론")).not.toHaveClass(color);
-      expect(screen.getByText(text)).toHaveClass(color, "tabular-nums");
+      expect(screen.getByText(text)).toHaveClass(color, "tabular-nums", "verdict");
+      expect(screen.getByText(text).closest("[aria-live]")).toHaveAttribute("aria-live", "polite");
       expect(screen.getByText("마지막 구간")).toBeInTheDocument();
     },
   );
+
+  it("announces only the last-result line, never the ticking clock", () => {
+    render(<TimerFace segments={segments} view={view} />);
+    expect(screen.getByText("첫 구간").closest("[aria-live]")).toHaveAttribute("aria-live", "polite");
+    expect(screen.getByText("3:00").closest("[aria-live]")).toBeNull();
+    expect(screen.getByText("1:00").closest("[aria-live]")).toBeNull();
+  });
+
+  it("draws a smaller clock for the landing preview with the same parts", () => {
+    render(<TimerFace segments={segments} view={view} compact />);
+    expect(screen.getByText("1:00")).toHaveClass("text-[min(24vw,104px)]");
+    expect(screen.getByText("1:00")).not.toHaveClass("text-[min(30vw,200px)]");
+    expect(screen.getByText("전체 남은 시간")).toBeInTheDocument();
+  });
 
   it("shows an overdue total in red", () => {
     render(<TimerFace segments={segments} view={{ ...view, totalRemainingMs: -80_000 }} />);

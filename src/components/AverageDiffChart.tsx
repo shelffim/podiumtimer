@@ -12,16 +12,16 @@ export function AverageDiffChart({ rows }: { rows: AverageRow[] }) {
         {rows.map((row, index) => (
           <li key={index} className={grid}>
             <span className="truncate text-soft">{row.name}</span>
-            <div aria-hidden="true" className="relative h-3.5">
+            <div aria-hidden="true" className="relative h-4">
               <div data-baseline className="absolute -inset-y-1 left-1/2 w-px bg-line" />
               {maxDifference > 0 && row.verdict !== "on_time" && (
                 <div className={`absolute inset-y-0 w-1/2 ${row.verdict === "late" ? "left-1/2" : "right-1/2"}`}>
-                  <div data-bar className={`absolute inset-y-0 rounded-sm ${row.verdict === "late" ? "left-0 bg-red-400" : "right-0 bg-blue-400"}`}
+                  <div data-bar className={`absolute inset-y-0 min-w-1 ${row.verdict === "late" ? "rounded-r-full" : "rounded-l-full"} ${row.verdict === "late" ? "left-0 bg-red-400" : "right-0 bg-blue-400"}`}
                     style={{ width: `${Math.abs(row.diffMs) / maxDifference * 100}%` }} />
                 </div>
               )}
             </div>
-            <span className={`text-right tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</span>
+            <span className={`text-right font-semibold tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</span>
           </li>
         ))}
       </ul>

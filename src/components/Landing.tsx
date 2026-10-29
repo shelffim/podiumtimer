@@ -3,33 +3,35 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { diffLabel, lastResultLabel, MESSAGES, nextSegmentLabel, progressLabel } from "@/lib/messages";
-import { formatClock } from "@/lib/timer";
+import { MESSAGES, progressLabel } from "@/lib/messages";
+import { computeTimer } from "@/lib/timer";
 import { safeReturnTo } from "@/lib/validation";
 import { api, dataMode } from "@/services/api";
 import { AppBar } from "./AppBar";
 import { Icon, type IconName } from "./Icon";
-import { TimelineBar } from "./TimelineBar";
+import { TimerFace } from "./TimerFace";
 
 const copy = MESSAGES.landing;
 const featureIcons: IconName[] = ["gauge", "link", "chart"];
 const previewSeconds = [30, 90, 120, 150, 60, 150];
 const previewSegments = copy.previewSegments.map((name, index) => ({ id: String(index), name, durationSec: previewSeconds[index] }));
+// 둘째 구간을 12초 늦게 넘기고 셋째 구간에서 36초가 지난 순간이에요(남은 1:24, 직전 구간 0:12 늦음).
+const previewView = computeTimer(previewSegments, { status: "running", startedAt: 0, transitions: [30_000, 132_000], rev: 0 }, 168_000);
 const inlineLink = "focus-ring rounded-sm text-white underline underline-offset-2";
 
+// 가입 뒤 보게 될 진행 화면과 같은 구성(위쪽 바 + TimerFace)을 멈춘 채로 보여줘요.
 function LandingPreview() {
   return (
-    <div aria-hidden="true" className="card gap-5">
-      <div className="flex items-center gap-3">
-        <span className="chip tabular-nums">{progressLabel(2, previewSegments.length)}</span>
-        <span className="caption">{nextSegmentLabel(previewSegments[3].name)}</span>
+    <div aria-hidden="true" className="card gap-0 overflow-hidden p-0">
+      <div className="flex items-center gap-2 border-b border-line px-5 py-3">
+        <span className="chip tabular-nums">{progressLabel(previewView.segmentIndex, previewSegments.length)}</span>
+        <span className="flex-1" />
+        <span className="plate size-9"><Icon name="undo" size={16} /></span>
+        <span className="plate size-9"><Icon name="square" size={13} /></span>
       </div>
-      <div className="flex flex-col gap-1.5">
-        <p className="heading">{previewSegments[2].name}</p>
-        <p className="text-7xl leading-none font-medium tracking-[-0.04em] text-white tabular-nums">{formatClock(84_000)}</p>
+      <div className="px-5 pt-6 pb-5">
+        <TimerFace segments={previewSegments} view={previewView} compact />
       </div>
-      <p className="text-sm text-white">{lastResultLabel(previewSegments[1].name)} <span className="text-red-400 tabular-nums">{diffLabel(12_000)}</span></p>
-      <TimelineBar segments={previewSegments} segmentIndex={2} progressMs={156_000} />
     </div>
   );
 }
@@ -82,7 +84,7 @@ export function Landing({ next }: { next?: string }) {
             </button>
             {failed && <p role="alert" className="text-sm text-red-400">{copy.signInFailed}</p>}
             <p className="caption">
-              {copy.minimumAge} · {copy.consentLead} <Link className={inlineLink} href="/terms">{MESSAGES.terms.title}</Link>{copy.consentAnd}{" "}
+              {MESSAGES.timers.free} · {copy.minimumAge} · {copy.consentLead} <Link className={inlineLink} href="/terms">{MESSAGES.terms.title}</Link>{copy.consentAnd}{" "}
               <Link className={inlineLink} href="/privacy">{MESSAGES.privacy.title}</Link>{copy.consentTail}
             </p>
           </div>

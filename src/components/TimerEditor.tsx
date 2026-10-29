@@ -87,6 +87,17 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
     setForm((current) => current && ({ ...current, segments: current.segments.map((s) => s.id === id ? { ...s, [field]: value } : s) }));
   }
 
+  // 읽을 수 있는 시간이면 칸을 나갈 때 m:ss로 바꿔 보여줘요(`3` → `3:00`). 에러 표시는 건드리지 않아요.
+  function normalizeClock(id: string) {
+    setForm((current) => current && ({
+      ...current,
+      segments: current.segments.map((s) => {
+        const sec = s.id === id ? parseClock(s.clock) : null;
+        return sec === null ? s : { ...s, clock: formatDuration(sec * 1000) };
+      }),
+    }));
+  }
+
   function moveSegment(from: number, to: number) {
     clearFeedback();
     setForm((current) => {
@@ -221,7 +232,7 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
                         onChange={(e) => updateSegment(segment.id, "name", e.target.value)}
                         aria-invalid={!!fields[nameKey]} aria-describedby={fields[nameKey] ? fieldId(`${nameKey}-error`) : undefined} />
                       <input aria-label={segmentFieldLabel(index, "clock")} className="field text-right tabular-nums" placeholder={copy.clockPlaceholder} value={segment.clock}
-                        onChange={(e) => updateSegment(segment.id, "clock", e.target.value)}
+                        onChange={(e) => updateSegment(segment.id, "clock", e.target.value)} onBlur={() => normalizeClock(segment.id)}
                         aria-invalid={!!fields[clockKey]} aria-describedby={fields[clockKey] ? fieldId(`${clockKey}-error`) : undefined} />
                       <button type="button" aria-label={segmentFieldLabel(index, "remove")}
                         onClick={() => { clearFeedback(); setForm({ ...form, segments: form.segments.filter((s) => s.id !== segment.id) }); }}

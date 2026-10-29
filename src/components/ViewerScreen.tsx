@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { errorMessage, MESSAGES, progressLabel, segmentCountLabel, totalTimeLabel, viewerFullLabel } from "@/lib/messages";
-import { buildResult, computeTimer, totalPlannedMs } from "@/lib/timer";
+import { errorMessage, MESSAGES, progressLabel, viewerFullLabel } from "@/lib/messages";
+import { buildResult, computeTimer } from "@/lib/timer";
 import { nicknameSchema, sanitizeNickname } from "@/lib/validation";
 import { api, device } from "@/services/api";
 import type { ShareView } from "@/types/share";
@@ -10,7 +10,7 @@ import { AppBar } from "./AppBar";
 import { Footer } from "./Footer";
 import { Icon, type IconName } from "./Icon";
 import { ResultTable } from "./ResultTable";
-import { SegmentList } from "./SegmentList";
+import { SegmentOverview } from "./SegmentOverview";
 import { TimerFace } from "./TimerFace";
 import { useNow } from "./useNow";
 import { useShareViewer } from "./useShareViewer";
@@ -110,13 +110,14 @@ export function ViewerScreen({ code, contactEmail }: { code: string; contactEmai
       </div>
     </main>;
   }
-  if (share.state.status === "aborted") return notice("circle-stop", copy.aborted);
+  if (share.state.status === "aborted") return notice("circle-stop", copy.aborted, copy.abortedHint);
   if (share.state.status === "finished") return shell(<>
     <div className="flex flex-col gap-1.5">
       <span className="caption">{share.timerName}</span>
       <h1 className="title">{MESSAGES.run.finished}</h1>
     </div>
     <div className="card"><ResultTable results={buildResult(share.segments, share.state)} /></div>
+    <p className="caption">{copy.finishedHint}</p>
   </>);
   return shell(<>
     <div className="flex flex-col gap-1.5">
@@ -127,9 +128,6 @@ export function ViewerScreen({ code, contactEmail }: { code: string; contactEmai
       <span aria-hidden="true" className="spinner" />
       <p className="text-sm">{copy.waiting}</p>
     </div>
-    <div className="flex flex-col gap-1.5">
-      <p className="label">{segmentCountLabel(share.segments.length)} · {totalTimeLabel(totalPlannedMs(share.segments))}</p>
-      <SegmentList segments={share.segments} />
-    </div>
+    <SegmentOverview segments={share.segments} />
   </>);
 }

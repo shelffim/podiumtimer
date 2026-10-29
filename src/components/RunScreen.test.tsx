@@ -105,7 +105,8 @@ describe("RunScreen", () => {
     expect(screen.getByText("구간 2개")).toBeInTheDocument();
     expect(screen.getByText("합계 1:30")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "시작" })).toHaveClass("w-full");
-    expect(screen.getByText(MESSAGES.run.startHint)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "시작" }).parentElement).toHaveClass("sticky", "bottom-0");
+    expect(screen.getByRole("button", { name: "시작" }).parentElement).toContainElement(screen.getByText(MESSAGES.run.startHint));
     expect(screen.getByRole("link", { name: MESSAGES.common.back })).toHaveAttribute("href", "/timers");
     expect(screen.getByRole("contentinfo")).toContainElement(screen.getByRole("link", { name: "help@example.test" }));
   });
@@ -122,7 +123,8 @@ describe("RunScreen", () => {
     await api.updateTimer(timer.id, { name: timer.name, segments: [] }); await open();
     expect(screen.queryByRole("button", { name: "시작" })).not.toBeInTheDocument();
     expect(screen.getByText("구간을 추가해야 시작할 수 있어요")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "편집" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "편집" })).toHaveClass("btn-primary");
+    expect(screen.queryByRole("heading", { name: MESSAGES.share.title })).not.toBeInTheDocument();
     space(); expect(device.loadRun(timer.id)).toBeNull();
   });
   it("starts with a snapshot and corrected time, retaining an idle share code", async () => {
@@ -194,8 +196,17 @@ describe("RunScreen", () => {
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "기록 보기" })).toHaveAttribute("href", `/timers/${timer.id}/records`);
     expect(screen.getByRole("link", { name: "구간 고치기" })).toHaveAttribute("href", `/timers/${timer.id}`);
+    expect(screen.getByRole("button", { name: "다시 하기" })).toHaveClass("btn-primary", "btn-lg", "w-full");
+    expect(screen.getByText(MESSAGES.run.averageTeaser)).toBeInTheDocument();
     space(); tick(5_000); await flush();
     expect(save).toHaveBeenCalledTimes(1); expect(persist).toHaveBeenCalledTimes(3);
+  });
+  it("stops teasing the average once a second matching record exists", async () => {
+    await open(); click("시작"); await finish();
+    expect(screen.getByText(MESSAGES.run.averageTeaser)).toBeInTheDocument();
+    click("다시 하기"); await flush(); click("시작"); tick(500); await finish();
+    expect(screen.getByText(MESSAGES.run.saved)).toBeInTheDocument();
+    expect(screen.queryByText(MESSAGES.run.averageTeaser)).not.toBeInTheDocument();
   });
   it("expires the finish hint after 3 seconds without ending and starts a fresh confirmation", async () => {
     await open(); click("시작"); space(); tick(500); space();

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { errorMessage, MESSAGES, progressLabel, resultSummaryLabel, savedLabel, seatCountLabel, segmentCountLabel, totalTimeLabel } from "@/lib/messages";
+import { errorMessage, MESSAGES, progressLabel, resultSummaryLabel, savedLabel, seatCountLabel } from "@/lib/messages";
 import { seatUsage } from "@/lib/seats";
-import { buildResult, canResumeRun, computeTimer, createIdleRun, reduceRun, resultTotals, totalPlannedMs } from "@/lib/timer";
+import { matchingRecords } from "@/lib/stats";
+import { buildResult, canResumeRun, computeTimer, createIdleRun, reduceRun, resultTotals } from "@/lib/timer";
 import { api, device } from "@/services/api";
 import type { LocalRun, RunAction } from "@/types/run";
 import type { Timer } from "@/types/timer";
@@ -13,10 +14,9 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { Footer } from "./Footer";
 import { Icon } from "./Icon";
 import { ResultTable } from "./ResultTable";
-import { SegmentList } from "./SegmentList";
+import { SegmentOverview } from "./SegmentOverview";
 import { ShareHostPanel } from "./ShareHostPanel";
 import { useShareHost } from "./useShareHost";
-import { TimelineBar } from "./TimelineBar";
 import { TimerFace } from "./TimerFace";
 import { useAdvanceInput } from "./useAdvanceInput";
 import { useNow } from "./useNow";
@@ -33,6 +33,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
   const [actionError, setActionError] = useState<string | null>(null);
   const [finishHint, setFinishHint] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+  const [firstRecord, setFirstRecord] = useState(false);
   const [restarting, setRestarting] = useState(false);
   const [askAbort, setAskAbort] = useState(false);
   const targetRef = useRef<HTMLDivElement>(null);
@@ -93,13 +94,20 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
   }
 
   async function saveRecord(local: LocalRun) {
-    if (saving.current || local.run.startedAt === null) return;
+    if (!loaded || saving.current || local.run.startedAt === null) return;
     saving.current = true;
     const currentGeneration = generation.current;
     setSaveStatus("saving");
     try {
       const result = await api.saveRecord(timerId, local.run.startedAt, buildResult(local.segments, local.run));
-      if (generation.current === currentGeneration) setSaveStatus(result.ok ? "saved" : "failed");
+      if (generation.current !== currentGeneration) return;
+      setSaveStatus(result.ok ? "saved" : "failed");
+      if (!result.ok) return;
+      // 같은 구간 구성의 첫 기록이면 한 번 더 하면 평균이 생긴다고 알려줘요. 조회 실패는 안내만 건너뛰어요.
+      const records = await api.listRecords(timerId).catch(() => null);
+      if (generation.current === currentGeneration && records?.ok) {
+        setFirstRecord(matchingRecords({ ...loaded.timer, segments: local.segments }, records.data).length === 1);
+      }
     } catch {
       if (generation.current === currentGeneration) setSaveStatus("failed");
     } finally {
@@ -171,6 +179,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
       setLoaded({ timer: result.data, local, offset: loaded?.offset ?? 0 });
       clearHint();
       setSaveStatus("idle");
+      setFirstRecord(false);
     } catch {
       if (generation.current === currentGeneration) setActionError(MESSAGES.appError.title);
     } finally {
@@ -185,7 +194,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
     <Footer contactEmail={contactEmail} />
   </div>;
   const errorAlert = actionError ? <p role="alert" className="text-sm text-red-400">{actionError}</p> : null;
-  const restartButton = <button type="button" className="btn btn-primary" disabled={restarting || saveStatus === "saving"} onClick={() => void restart()}>
+  const restartButton = <button type="button" className="btn btn-primary btn-lg w-full" disabled={restarting || saveStatus === "saving"} onClick={() => void restart()}>
     <Icon name="restart" size={18} />{copy.restart}
   </button>;
 
@@ -239,28 +248,24 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
 
   if (run.status === "idle") return managed(<>
     {errorAlert}
-    <section className="card gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="label">{segmentCountLabel(timer.segments.length)}</span>
-        <span className="text-sm text-soft tabular-nums">{totalTimeLabel(totalPlannedMs(timer.segments))}</span>
+    <SegmentOverview segments={timer.segments} />
+    {timer.segments.length > 0 ? <>
+      <ShareHostPanel timerId={timerId} code={local.shareCode} seatCap={share.seatCap} members={share.members} onCreate={() => void createShare()} />
+      {/* 구간이 많아도 [시작]이 첫 화면에 보이도록 아래에 붙여 둬요. */}
+      <div className="sticky bottom-0 z-10 -mx-5 flex flex-col gap-2.5 border-t border-line bg-surface px-5 pt-4 pb-[calc(1rem+var(--badge-space))] md:-mx-8 md:border-t-0 md:px-8">
+        <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => transition("start")}><Icon name="play" />{MESSAGES.timers.start}</button>
+        <p className="caption text-center">{copy.startHint}</p>
       </div>
-      {timer.segments.length > 0 ? <TimelineBar segments={timer.segments} segmentIndex={0} progressMs={0} done /> : null}
-      <SegmentList segments={timer.segments} />
-    </section>
-    <ShareHostPanel timerId={timerId} code={local.shareCode} seatCap={share.seatCap} members={share.members} onCreate={() => void createShare()} />
-    {timer.segments.length > 0 ? <div className="flex flex-col gap-2.5">
-      <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => transition("start")}><Icon name="play" />{MESSAGES.timers.start}</button>
-      <p className="caption text-center">{copy.startHint}</p>
-    </div> : <div className="flex flex-col items-start gap-3">
+    </> : <div className="flex flex-col items-start gap-3">
       <p className="text-sm text-soft">{copy.noSegments}</p>
-      <Link href={`/timers/${timerId}`} className="btn btn-secondary">{MESSAGES.timers.edit}</Link>
+      <Link href={`/timers/${timerId}`} className="btn btn-primary">{MESSAGES.timers.edit}</Link>
     </div>}
   </>, timer.name);
 
   if (run.status === "aborted") return managed(<>
     {errorAlert}
     <h2 className="title">{copy.aborted}</h2>
-    <div>{restartButton}</div>
+    {restartButton}
   </>, timer.name);
 
   const results = buildResult(segments, run);
@@ -272,17 +277,20 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
       {run.startedAt !== null ? <p className="text-sm text-soft">{resultSummaryLabel(run.startedAt, totals.plannedMs, totals.actualMs)}</p> : null}
     </div>
     <div className="card"><ResultTable results={results} /></div>
-    {saveStatus === "saved" ? <p role="status" className="caption flex items-center gap-1">
-      <Icon name="check" size={14} />{savedLabel(local.shareCode !== null)}
-    </p> : null}
+    {saveStatus === "saved" ? <div role="status" className="flex flex-col gap-1.5">
+      <p className="caption flex items-center gap-1"><Icon name="check" size={14} />{savedLabel(local.shareCode !== null)}</p>
+      {firstRecord ? <p className="flex items-center gap-1.5 text-sm text-white"><Icon name="chart" size={16} />{copy.averageTeaser}</p> : null}
+    </div> : null}
     {saveStatus === "failed" ? <div className="flex flex-col items-start gap-3">
       <p role="alert" className="text-sm text-red-400">{copy.saveFailed}</p>
       <button type="button" className="btn btn-secondary" onClick={() => void saveRecord(local)}>{copy.retrySave}</button>
     </div> : null}
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
       {restartButton}
-      <Link href={`/timers/${timerId}/records`} className="btn btn-secondary">{copy.records}</Link>
-      <Link href={`/timers/${timerId}`} className="btn btn-secondary">{copy.editSegments}</Link>
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={`/timers/${timerId}/records`} className="btn btn-secondary">{copy.records}</Link>
+        <Link href={`/timers/${timerId}`} className="btn btn-secondary">{copy.editSegments}</Link>
+      </div>
     </div>
   </>, timer.name);
 }

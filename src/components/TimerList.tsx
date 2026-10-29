@@ -12,6 +12,7 @@ import type { Timer } from "@/types/timer";
 import { AppBar } from "./AppBar";
 import { Icon } from "./Icon";
 import { LimitNotice } from "./LimitNotice";
+import { TimelineBar } from "./TimelineBar";
 
 const copy = MESSAGES.timers;
 
@@ -21,6 +22,7 @@ export function TimerList() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -35,7 +37,12 @@ export function TimerList() {
       else setData({ timers: timers.data, status: status.data });
     }).catch(() => { if (active) setError(MESSAGES.appError.title); });
     return () => { active = false; };
-  }, [router]);
+  }, [router, attempt]);
+
+  function retry() {
+    setError(null);
+    setAttempt((count) => count + 1);
+  }
 
   function createTimer() {
     if (!data) return;
@@ -70,18 +77,24 @@ export function TimerList() {
     <div className="page">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="title">{copy.title}</h1>
-        {data && data.timers.length > 0 && <button type="button" className="btn btn-primary" onClick={createTimer}>
+        {data && data.timers.length > 0 && <button type="button" className="btn btn-secondary" onClick={createTimer}>
           <Icon name="plus" size={18} />{copy.newTimer}
-          {data.status.plan === "free" && <span className="font-medium tabular-nums opacity-85">{data.status.timerCount}/{LIMITS.free.timers}</span>}
+          {data.status.plan === "free" && <span className="font-medium text-soft tabular-nums">{data.status.timerCount}/{LIMITS.free.timers}</span>}
         </button>}
       </div>
-      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+      {error && <div className="flex flex-col items-start gap-3">
+        <p role="alert" className="text-sm text-red-400">{error}</p>
+        {!data && <button type="button" className="btn btn-secondary" onClick={retry}><Icon name="restart" size={18} />{MESSAGES.appError.retry}</button>}
+      </div>}
       {!data && !error && <p className="text-sm text-soft">{copy.loading}</p>}
       {notice && <LimitNotice text={notice} pricingHref="/pricing?returnTo=/timers" />}
       {data && (data.timers.length === 0
         ? <div className="card items-start p-8">
-          <h2 className="heading">{copy.emptyTitle}</h2>
-          <p className="text-sm text-soft">{copy.emptyDescription}</p>
+          <span className="plate"><Icon name="clock" /></span>
+          <div className="flex flex-col gap-1.5">
+            <h2 className="heading">{copy.emptyTitle}</h2>
+            <p className="text-sm text-soft">{copy.emptyDescription}</p>
+          </div>
           <button type="button" className="btn btn-primary" onClick={createTimer}><Icon name="plus" size={18} />{copy.firstTimer}</button>
         </div>
         : <ul className="grid gap-3 md:grid-cols-2">
@@ -90,6 +103,7 @@ export function TimerList() {
               <h2 className="heading">{timer.name}</h2>
               <p className="text-sm text-soft tabular-nums">{timerSummary(timer.segments.length, totalPlannedMs(timer.segments))}</p>
             </div>
+            {timer.segments.length > 0 && <TimelineBar segments={timer.segments} segmentIndex={0} progressMs={0} done />}
             <div className="flex flex-wrap gap-2">
               <Link href={`/timers/${timer.id}/run`} className="btn btn-primary"><Icon name="play" size={18} />{copy.start}</Link>
               <Link href={`/timers/${timer.id}`} className="btn btn-secondary">{copy.edit}</Link>

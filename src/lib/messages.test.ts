@@ -27,8 +27,12 @@ describe("messages", () => {
     expect(recordDateLabel(Date.UTC(2026, 9, 26, 5, 5))).toBe("10월 26일 (월) 14:05");
     expect(recordDateLabel(Date.UTC(2026, 9, 26, 15, 5))).toBe("10월 27일 (화) 00:05");
   });
+  it("describes the service in one line for link previews", () => {
+    expect(MESSAGES.meta.description).toBe("발표·토론을 구간으로 나눠, 구간마다 계획보다 빨랐는지 늦었는지 보여주는 타이머예요");
+  });
   it("provides viewer copy and capacity labels", () => {
     expect(MESSAGES.viewer).toMatchObject({ nickname: "닉네임", enter: "입장", waiting: "발표자가 시작하면 자동으로 시작돼요", notFound: "존재하지 않는 링크예요", aborted: "발표가 중단되었어요", disconnected: "연결 끊김" });
+    expect(MESSAGES.viewer).toMatchObject({ abortedHint: "발표자가 다시 시작하면 새 링크로 들어와 주세요", finishedHint: "다음 발표는 발표자가 보내는 새 링크로 볼 수 있어요" });
     expect(viewerFullLabel(3)).toBe("인원이 가득 찼어요 (3/3)");
     expect(viewerFullLabel(10)).toBe("인원이 가득 찼어요 (10/10)");
   });
@@ -51,6 +55,7 @@ describe("messages", () => {
       noSegments: "구간을 추가해야 시작할 수 있어요",
       saved: "기록에 저장했어요", saveFailed: "기록을 저장하지 못했어요", retrySave: "다시 저장",
       finished: "발표가 끝났어요", editSegments: "구간 고치기", next: "다음", finish: "종료",
+      averageTeaser: "한 번 더 하면 구간별 평균을 볼 수 있어요",
     });
   });
   it("formats face labels using zero-based progress and the shared clock rounding", () => {

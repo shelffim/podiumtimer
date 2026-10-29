@@ -6,3 +6,10 @@ export const verdictColor: Record<Verdict, string> = {
   early: "text-blue-400",
   on_time: "text-neutral-300",
 };
+
+// 판정 배지는 같은 의미 색을 옅게 깐 바탕 위에 같은 글자 색을 써요.
+export const verdictTone: Record<Verdict, string> = {
+  late: "bg-red-400/15 text-red-400",
+  early: "bg-blue-400/15 text-blue-400",
+  on_time: "bg-white/10 text-neutral-300",
+};
