@@ -3,6 +3,7 @@
 브라우저로 앱을 확인할 때마다 이 문서를 기준으로 한다. 유스케이스 6개를 UC1부터 순서대로 돌리고(앞 UC가 만든 데이터를 뒤 UC가 쓴다), 끝나면 6절 "실행 기록"에 한 줄을 남긴다.
 
 - 브라우저 E2E 자동 테스트는 PRD "MVP 제외 사항"이다. 저장소에 테스트 코드를 두지 않고, 이 문서를 따라 손이나 dev-browser 스크립트로 돌린다.
+- Claude Code에서는 `/browser-test [UC 번호]`로 돌린다. `browser-tester` 에이전트가 이 문서대로 실행해 결과만 돌려주고, 커맨드가 4절·6절을 갱신한다. 문제는 고치지 않는다.
 - 기대 문구는 `src/lib/messages.ts` 기준이다. 문구·화면·흐름을 바꾸면 이 문서의 해당 단계도 같이 고친다.
 - 단계 번호(`UC2-5` 등)로 알려진 문제와 실행 기록에서 가리킨다.
 
@@ -12,7 +13,7 @@
 |---|---|
 | 모드 | mock (`NEXT_PUBLIC_DATA_MODE=mock`). `npm run dev` → `http://localhost:3000` |
 | 화면 크기 | 390×844 (폰). 레이아웃은 360×640에서도 한 번 본다 |
-| 도구 | dev-browser (`dev-browser --browser podium --headless`). 스크린샷은 `~/.dev-browser/tmp/uc{번호}-{설명}.png` |
+| 도구 | dev-browser (`dev-browser --browser podium --headless --timeout 120`). 스크립트 하나의 기본 제한은 30초라 UC를 통째로 돌릴 때는 `--timeout`을 준다. 스크린샷은 `~/.dev-browser/tmp/uc{번호}-{설명}.png` |
 | 초기화 | 시작 전에 `localStorage.clear()` 후 새로고침. mock 데이터는 모두 localStorage에 있다(`mock:*`, `run:*`, `clientId`, `nickname`, `joined:*`) |
 
 ### 테스트 데이터

@@ -32,12 +32,13 @@
 
 ## 개발 프로세스
 - CRITICAL: 새 기능 구현 시 반드시 테스트를 먼저 작성하고, 테스트가 통과하는 구현을 작성할 것 (TDD)
-- 테스트 파일은 대상 파일 옆에 `*.test.ts(x)`로 둔다 (TDD 가드 훅이 이 위치를 확인한다).
+- 테스트 파일은 대상 파일 옆에 `*.test.ts(x)`로 둔다 (TDD 가드 훅이 편집할 때와 턴이 끝날 때 이 위치를 확인한다. 턴이 끝날 때는 Bash로 고친 파일도 본다).
 - `npm test`는 외부 서비스·네트워크·Docker 없이 통과해야 한다. 외부 SDK는 목으로 대체한다.
 - `npm run build`는 환경변수 없이도 성공해야 한다. 환경변수는 실행 시점에 검사하고, `NEXT_PUBLIC_DATA_MODE`가 없으면 mock 모드로 동작한다.
 - CRITICAL: `vercel deploy`는 배포 step에서 `npm run deploy`로만, `supabase db push`는 DB 반영 step에서 `npm run db:push`로만 실행한다. 그 외 step에서는 실제 서비스를 바꾸는 명령을 실행하지 마라.
 - CRITICAL: 원격 DB에 `supabase db reset`을 실행하지 마라. 이미 원격에 적용된 마이그레이션 파일을 고치지 말고 새 마이그레이션을 추가하라.
 - 커밋 메시지는 conventional commits 형식을 따를 것 (feat:, fix:, docs:, refactor:, test:, chore:)
+- 다른 세션이 같은 저장소에서 작업 중이면 같은 작업 트리를 함께 고치지 말고 세션마다 git worktree를 따로 쓴다 (Claude Code는 `.claude/worktrees/`). 커밋·푸시 전에 `git fetch`로 main이 앞서 갔는지 확인한다.
 
 ## 명령어
 npm run dev      # 개발 서버
@@ -45,4 +46,4 @@ npm run build    # 프로덕션 빌드
 npm run lint     # ESLint
 npm run test     # 테스트 (Vitest)
 npm run deploy   # Vercel 운영 배포 (배포 step 전용)
-npm run db:push  # Supabase 마이그레이션 반영 (DB 반영 step 전용)
+npm run db:push  # Supabase 마이그레이션 반영 (DB 반영 step 전용, live 단계에서 package.json에 추가)
