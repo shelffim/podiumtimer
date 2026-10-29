@@ -2,13 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MESSAGES, planLimitMessage } from "@/lib/messages";
-import { api } from "@/services/api";
+import { api, device } from "@/services/api";
 import type { Segment } from "@/types/timer";
 import { TimerEditor } from "./TimerEditor";
 
 const navigation = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
-beforeEach(async () => { localStorage.clear(); vi.clearAllMocks(); await api.signIn(); });
+beforeEach(async () => { localStorage.clear(); sessionStorage.clear(); vi.clearAllMocks(); await api.signIn(); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 const segment = (name: string, index: number): Segment => ({ id: `s${index}`, name, durationSec: 60 });
 async function seed(segments = [segment("도입", 0)]) {
@@ -80,6 +80,34 @@ describe("TimerEditor", () => {
     await save();
     expect(screen.getByLabelText("타이머 이름")).toHaveAccessibleDescription(MESSAGES.validation.nameRequired);
     expect(screen.getByLabelText("구간 1 이름")).toHaveAccessibleDescription(MESSAGES.validation.nameRequired);
+  });
+
+  it("shows name and clock errors together on one save", async () => {
+    render(<TimerEditor />); await screen.findByLabelText("타이머 이름");
+    await save();
+    expect(screen.getByLabelText("타이머 이름")).toHaveAccessibleDescription(MESSAGES.validation.nameRequired);
+    expect(screen.getByLabelText("구간 1 이름")).toHaveAccessibleDescription(MESSAGES.validation.nameRequired);
+    expect(screen.getByLabelText("구간 1 시간")).toHaveAccessibleDescription(MESSAGES.validation.clockFormat);
+  });
+
+  it("restores unsaved segments once after leaving for the pass page", async () => {
+    const timer = await seed(Array.from({ length: 10 }, (_, i) => segment(`구간 ${i}`, i)));
+    const user = userEvent.setup();
+    render(<TimerEditor timerId={timer.id} />);
+    await screen.findByDisplayValue("수업 발표");
+    await user.click(screen.getByRole("button", { name: "구간 추가" }));
+    await user.type(screen.getByLabelText("구간 11 이름"), "마무리");
+    await user.type(screen.getByLabelText("구간 11 시간"), "1:00");
+    await save();
+    vi.spyOn(device, "saveDraft");
+    fireEvent.click(screen.getByRole("link", { name: "30일권 보기" }));
+    expect(device.saveDraft).toHaveBeenCalledOnce();
+    cleanup(); render(<TimerEditor timerId={timer.id} />);
+    expect(await screen.findByLabelText("구간 11 이름")).toHaveValue("마무리");
+    expect(screen.getByLabelText("구간 11 시간")).toHaveValue("1:00");
+    cleanup(); render(<TimerEditor timerId={timer.id} />);
+    await screen.findByDisplayValue("수업 발표");
+    expect(screen.queryByLabelText("구간 11 이름")).not.toBeInTheDocument();
   });
 
   it("adds an eleventh segment and shows the free limit only on save", async () => {

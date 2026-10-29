@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { errorMessage, MESSAGES, progressLabel, resultSummaryLabel, savedLabel, seatCountLabel, segmentCountLabel, totalTimeLabel } from "@/lib/messages";
 import { seatUsage } from "@/lib/seats";
-import { buildResult, computeTimer, createIdleRun, isStaleRun, reduceRun, resultTotals, totalPlannedMs } from "@/lib/timer";
+import { buildResult, canResumeRun, computeTimer, createIdleRun, reduceRun, resultTotals, totalPlannedMs } from "@/lib/timer";
 import { api, device } from "@/services/api";
 import type { LocalRun, RunAction } from "@/types/run";
 import type { Timer } from "@/types/timer";
@@ -62,7 +62,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
         return;
       }
       let local = device.loadRun(timerId);
-      if (local && isStaleRun(local.run, Date.now() + offset)) {
+      if (local && !canResumeRun(local.run, Date.now() + offset)) {
         device.clearRun(timerId);
         local = null;
       }
@@ -219,7 +219,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
         <div className="mx-auto flex min-h-0 w-full max-w-[1100px] flex-1 flex-col justify-center px-5 py-6">
           <TimerFace segments={segments} view={view} />
         </div>
-        <div className="mx-auto w-full max-w-[1100px] px-5 pb-6">
+        <div className="mx-auto w-full max-w-[1100px] px-5 pb-12">
           <p className="caption py-3 text-center pointer-fine:hidden">{copy.tapHint}</p>
           <div className="hidden items-center justify-center gap-4 pointer-fine:flex">
             <button type="button" className="btn btn-primary btn-lg min-w-60" onClick={advance}>
@@ -229,7 +229,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
           </div>
         </div>
       </div>
-      {finishHint ? <p role="status" className="pointer-events-none absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white px-5 py-3 font-semibold whitespace-nowrap text-ink">
+      {finishHint ? <p role="status" className="pointer-events-none absolute bottom-30 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white px-5 py-3 font-semibold whitespace-nowrap text-ink">
         {MESSAGES.timerFace.finishHint}
       </p> : null}
       {askAbort ? <ConfirmDialog title={copy.abortConfirm} description={copy.abortDescription} confirmLabel={copy.abort}

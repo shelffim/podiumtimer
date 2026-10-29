@@ -27,6 +27,12 @@ export const timerInputSchema = z.object({
   segments: z.array(segmentSchema, { error: copy.invalidInput }).max(LIMITS.pass.segments, { error: copy.segmentLimit }),
 }, { error: copy.invalidInput });
 
+// 기기에 잠깐 맡긴 편집 폼의 모양만 확인해요. 값 검사는 저장할 때 timerInputSchema로 해요.
+export const timerDraftSchema = z.object({
+  name: z.string(),
+  segments: z.array(z.object({ id: z.string(), name: z.string(), clock: z.string() })),
+});
+
 export const runStateSchema = z.object({
   status: z.enum(["idle", "running", "finished", "aborted"], { error: copy.invalidInput }),
   startedAt: numberSchema.nullable(),

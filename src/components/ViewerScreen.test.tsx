@@ -90,7 +90,7 @@ describe("ViewerScreen", () => {
     const running: RunState = { status: "running", startedAt: Date.now() + 200, transitions: [], rev: 1 };
     await update(running);
     expect(screen.getByText("1 / 2")).toBeInTheDocument();
-    expect(screen.getByRole("main")).toHaveClass("h-dvh", "overflow-hidden");
+    expect(screen.getByRole("main")).toHaveClass("h-dvh", "overflow-hidden", "pb-12");
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument(); expect(screen.queryByText(/접속/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("1 / 2")); fireEvent.touchStart(screen.getByRole("main")); fireEvent.touchEnd(screen.getByRole("main"));

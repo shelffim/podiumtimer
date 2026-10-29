@@ -56,7 +56,7 @@ export function useShareViewer({ code, nickname, offset }: Options): ViewerState
     }
     function checkAdmission() {
       if (stopped || !share || !seenSelf) return;
-      if (!admit(members, clientId, share.seatCap)) {
+      if (!admit(members, clientId, share.seatCap, share.state.status)) {
         patch({ share, status: "full", disconnected: false });
         stop();
       }

@@ -106,14 +106,16 @@ type RunState = {
   rev: number                    // 바뀔 때마다 +1
 }
 type LocalRun = { segments: Segment[]; run: RunState; shareCode: string | null }  // localStorage run:{timerId}
+type TimerDraft = { name: string; segments: { id: string; name: string; clock: string }[] }  // sessionStorage draft:{편집 경로}
 ```
 
 - `start`는 `idle`에서만, `next`·`undo`·`abort`는 `running`에서만. 마지막 구간의 `next`는 화면이 "한 번 더 누르기"를 확인한 뒤에만 보내고, 그러면 `finished`. `undo`는 `transitions`의 마지막 값을 뺀다(연달아 가능).
-- 구간 i 실제 시간 = `transitions[i] − (i === 0 ? startedAt : transitions[i − 1])`. 정시 = `|실제 − 계획| <= 1000`.
+- 구간 i 실제 시간 = `transitions[i] − (i === 0 ? startedAt : transitions[i − 1])`. 정시 = `round(|실제 − 계획| / 1000) <= 1`(화면에 보이는 반올림한 초 기준).
 - 남은 시간은 초 단위 올림으로 표시해서 "0:00"이 되는 순간이 계획 시간과 맞게 한다. 0을 지나면 "-0:05"처럼 표시한다.
 - 진행 위치 = 현재 구간의 계획상 시작 지점 + `min(현재 구간 경과, 현재 구간 계획)`.
-- 실행 화면이 열리면 localStorage의 실행 상태로 그대로 이어간다. 단 `running`인데 시작한 지 12시간이 지났으면 버리고 `idle`로 시작한다.
-- `finished`면 결과 표를 보여준다. [다시 하기]는 `idle`로 되돌리고 `shareCode`를 지운다.
+- 실행 화면이 열리면 localStorage의 실행 상태로 그대로 이어간다(`canResumeRun`). 단 `running`인데 시작한 지 12시간이 지났거나, 이미 `finished`·`aborted`면 버리고 `idle`로 시작한다(`shareCode`도 지움).
+- 끝나는 순간 결과 표를 보여준다. [다시 하기]는 `idle`로 되돌리고 `shareCode`를 지운다.
+- 편집 화면의 한도 안내에서 [30일권 보기]를 누르면 편집 중인 폼을 `TimerDraft`로 sessionStorage에 맡기고, 편집 화면이 다시 열리면 한 번 꺼내 복원한다.
 
 ## 인터페이스 (형태만)
 
@@ -138,7 +140,7 @@ planOf(expiry, nowMs): 'free' | 'pass'
 LIMITS = { free: { timers: 3, segments: 10, seats: 3 }, pass: { timers: Infinity, segments: 30, seats: 10 } }
 
 // src/lib/seats.ts
-admit(presence, clientId, seatCap): boolean   // 발표자 1자리를 빼고 시청자를 joinedAt 순으로 seatCap − 1명까지
+admit(presence, clientId, seatCap, status): boolean   // 끝난(finished·aborted) 발표는 모두 입장. 아니면 발표자 1자리를 빼고 시청자를 joinedAt 순으로 seatCap − 1명까지
 ```
 
 ## 서버 액션 (`src/app/**/actions.ts`, 모두 로그인 사용자 확인. 쓰기는 소유권 확인 후 비밀 키)

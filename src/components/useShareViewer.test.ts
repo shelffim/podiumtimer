@@ -142,6 +142,13 @@ describe("useShareViewer", () => {
     await tick(60_000); expect(get).toHaveBeenCalledOnce();
     unmount(); expect(channel.leave).toHaveBeenCalledOnce();
   });
+  it("admits a viewer who opens a finished share even when seats are taken", async () => {
+    const finished = { ...initial, state: { status: "finished" as const, startedAt: 1_000, transitions: [61_000], rev: 2 }, rev: 2 };
+    get.mockResolvedValue({ ok: true, data: finished });
+    const { result } = open(); await flush();
+    act(() => presence([...others, own]));
+    expect(result.current.status).toBe("ready"); expect(channel.leave).not.toHaveBeenCalled();
+  });
   it("checks presence received before the first share and uses updated seat caps", async () => {
     const pending = deferred<Result<ShareView>>(); get.mockReturnValueOnce(pending.promise);
     const { result } = open(); await flush(); act(() => presence([...others, own]));

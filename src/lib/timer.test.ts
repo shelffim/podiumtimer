@@ -11,6 +11,7 @@ import {
   formatDuration,
   isOvertime,
   timelineLayout,
+  canResumeRun,
   isStaleRun,
   reduceRun,
   resultTotals,
@@ -126,15 +127,28 @@ describe("isStaleRun", () => {
   });
 });
 
+describe("canResumeRun", () => {
+  it.each<[RunStatus, boolean]>([["idle", true], ["running", true], ["finished", false], ["aborted", false]])(
+    "resumes %s on reopen: %s", (status, expected) => {
+      expect(canResumeRun({ ...running([2_000]), status }, 5_000)).toBe(expected);
+    },
+  );
+
+  it("does not resume a running state older than twelve hours", () => {
+    expect(canResumeRun(running(), 1_000 + STALE_RUN_MS)).toBe(true);
+    expect(canResumeRun(running(), 1_000 + STALE_RUN_MS + 1)).toBe(false);
+  });
+});
+
 describe("segment results", () => {
   it("sets the on-time tolerance to one second", () => {
     expect(ON_TIME_TOLERANCE_MS).toBe(1_000);
   });
 
   it.each([
-    [-1_001, "early"], [-1_000, "on_time"], [0, "on_time"],
-    [1_000, "on_time"], [1_001, "late"],
-  ] as const)("classifies a difference of %i ms as %s", (diffMs, verdict) => {
+    [-1_500, "early"], [-1_499, "on_time"], [-1_001, "on_time"], [0, "on_time"],
+    [1_001, "on_time"], [1_499, "on_time"], [1_500, "late"],
+  ] as const)("classifies a difference of %i ms by its displayed seconds as %s", (diffMs, verdict) => {
     expect(verdictOf(diffMs)).toBe(verdict);
     expect(toSegmentResult({ name: "도입", plannedMs: 10_000, actualMs: 10_000 + diffMs }))
       .toEqual({ name: "도입", plannedMs: 10_000, actualMs: 10_000 + diffMs, diffMs, verdict });

@@ -124,9 +124,16 @@ describe("messages", () => {
     expect(planLimitMessage("PLAN_LIMIT_TIMERS", "pass")).toBe("타이머는 제한 없이 만들 수 있어요");
   });
 
-  it.each([[12_000, "0:12 늦음"], [-8_000, "0:08 빠름"], [-1_001, "0:01 빠름"], [12_500, "0:13 늦음"], [-1_000, "정시"], [0, "정시"], [1_000, "정시"]] as const)(
+  it.each([[12_000, "0:12 늦음"], [-8_000, "0:08 빠름"], [-1_001, "정시"], [12_500, "0:13 늦음"], [-1_000, "정시"], [0, "정시"], [1_000, "정시"],
+    [1_499, "정시"], [1_500, "0:02 늦음"], [-1_500, "0:02 빠름"]] as const)(
     "labels %i ms as %s", (diffMs, expected) => expect(diffLabel(diffMs)).toBe(expected),
   );
+
+  it("never shows a one-second late or early label", () => {
+    for (let diffMs = -3_000; diffMs <= 3_000; diffMs += 50) {
+      expect(diffLabel(diffMs)).not.toMatch(/^0:0[01] /);
+    }
+  });
 
   it("labels every verdict", () => {
     expect(verdictWord("late")).toBe("늦음");

@@ -1,3 +1,4 @@
+import type { RunStatus } from "@/types/run";
 import type { PresenceMember } from "@/types/share";
 
 function uniqueMembers(presence: PresenceMember[]): PresenceMember[] {
@@ -9,7 +10,9 @@ function uniqueMembers(presence: PresenceMember[]): PresenceMember[] {
   return [...members.values()];
 }
 
-export function admit(presence: PresenceMember[], clientId: string, seatCap: number): boolean {
+export function admit(presence: PresenceMember[], clientId: string, seatCap: number, status: RunStatus): boolean {
+  // 끝난 발표는 결과만 보여주므로 자리를 따지지 않아요.
+  if (status === "finished" || status === "aborted") return true;
   const members = uniqueMembers(presence);
   const member = members.find((item) => item.clientId === clientId);
   if (!member) return false;

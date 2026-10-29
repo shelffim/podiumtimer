@@ -1,5 +1,6 @@
-import { localRunSchema } from "@/lib/validation";
+import { localRunSchema, timerDraftSchema } from "@/lib/validation";
 import type { LocalRun } from "@/types/run";
+import type { TimerDraft } from "@/types/timer";
 
 type Area = "local" | "session";
 
@@ -55,6 +56,21 @@ export const device = {
     const id = crypto.randomUUID();
     write("clientId", id, "session");
     return id;
+  },
+  // 결제하러 간 사이 편집 중인 폼을 이 탭에 맡겨 두고, 돌아오면 한 번만 꺼내요.
+  saveDraft(path: string, draft: TimerDraft): void {
+    write(`draft:${path}`, JSON.stringify(draft), "session");
+  },
+  takeDraft(path: string): TimerDraft | null {
+    const raw = read(`draft:${path}`, "session");
+    if (raw === null) return null;
+    try {
+      sessionStorage.removeItem(`draft:${path}`);
+      const parsed = timerDraftSchema.safeParse(JSON.parse(raw));
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
   },
   hasJoined(code: string): boolean {
     return read(`joined:${code}`) === "true";

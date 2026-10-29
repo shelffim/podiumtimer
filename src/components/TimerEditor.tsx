@@ -7,9 +7,9 @@ import { LIMITS } from "@/lib/billing";
 import { MESSAGES, errorMessage, planLimitMessage, segmentFieldLabel, segmentPlaceholder, segmentUsageLabel } from "@/lib/messages";
 import { formatDuration, totalPlannedMs } from "@/lib/timer";
 import { parseClock, timerInputSchema } from "@/lib/validation";
-import { api } from "@/services/api";
+import { api, device } from "@/services/api";
 import type { ErrorCode, Plan } from "@/types/api";
-import type { TimerInput } from "@/types/timer";
+import type { TimerDraft, TimerInput } from "@/types/timer";
 import { AppBar } from "./AppBar";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Icon } from "./Icon";
@@ -25,7 +25,7 @@ const segmentGrid = "grid grid-cols-[44px_minmax(0,1fr)_96px_44px] items-center 
 export function TimerEditor({ timerId }: { timerId?: string }) {
   const router = useRouter();
   const formId = useId();
-  const [form, setForm] = useState<{ name: string; segments: { id: string; name: string; clock: string }[] } | null>(null);
+  const [form, setForm] = useState<TimerDraft | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [fields, setFields] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<string | null>(null);
@@ -35,6 +35,7 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
   const [savedId, setSavedId] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const focusGrip = useRef<string | null>(null);
+  const path = timerId ? `/timers/${timerId}` : "/timers/new";
 
   useEffect(() => {
     if (focusGrip.current === null) return;
@@ -61,13 +62,14 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
         else setFailure(errorMessage(timer.code));
         return;
       }
-      setForm(timer?.ok ? {
+      const draft = device.takeDraft(path);
+      setForm(draft ?? (timer?.ok ? {
         name: timer.data.name,
         segments: timer.data.segments.map((segment) => ({ id: segment.id, name: segment.name, clock: formatDuration(segment.durationSec * 1000) })),
-      } : { name: "", segments: [{ id: crypto.randomUUID(), name: "", clock: "" }] });
+      } : { name: "", segments: [{ id: crypto.randomUUID(), name: "", clock: "" }] }));
     }).catch(() => { if (active) setFailure(MESSAGES.appError.title); });
     return () => { active = false; };
-  }, [timerId, router]);
+  }, [timerId, path, router]);
 
   function clearFeedback() {
     setFields({}); setFailure(null); setLimit(null); setSavedId(null);
@@ -137,10 +139,10 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
         return { id: segment.id, name: segment.name, durationSec: durationSec ?? 0 };
       }),
     };
-    if (Object.keys(errors).length) { setFields(errors); return; }
+    // 시간 형식 오류가 먼저 들어가 있어서 같은 칸의 범위 오류는 덮어쓰지 않아요.
     const parsed = timerInputSchema.safeParse(input);
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
+    if (!parsed.success || Object.keys(errors).length) {
+      for (const issue of parsed.error?.issues ?? []) {
         const key = issue.path.join(".");
         errors[key] ??= issue.message;
       }
@@ -175,7 +177,6 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
     finally { setBusy(false); }
   }
 
-  const path = timerId ? `/timers/${timerId}` : "/timers/new";
   const total = form ? totalPlannedMs(form.segments.map((s) => ({ id: s.id, name: s.name, durationSec: parseClock(s.clock) ?? 0 }))) : 0;
   const fieldId = (key: string) => `${formId}-${key}`;
 
@@ -242,7 +243,8 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
               {fields.segments && <p className="text-[13px] text-red-400">{fields.segments}</p>}
             </div>
           </fieldset>
-          {limit && <LimitNotice text={planLimitMessage(limit, plan)} pricingHref={plan === "free" ? `/pricing?returnTo=${encodeURIComponent(path)}` : undefined} />}
+          {limit && <LimitNotice text={planLimitMessage(limit, plan)} pricingHref={plan === "free" ? `/pricing?returnTo=${encodeURIComponent(path)}` : undefined}
+            onNavigate={() => device.saveDraft(path, form)} />}
           {savedId ? <div role="status" className="card items-start">
             <p className="label flex items-center gap-2"><Icon name="check" size={18} />{copy.saved}</p>
             <div className="flex flex-wrap gap-2">

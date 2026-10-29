@@ -234,17 +234,14 @@ describe("RunScreen", () => {
     expect(screen.getByText(MESSAGES.run.saved)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "다시 저장" })).not.toBeInTheDocument();
   });
-  it("does not save again when restored finished, including under StrictMode-like remounts", async () => {
-    const save = vi.spyOn(api, "saveRecord"); device.saveRun(timer.id, saved("finished"));
-    await open(); expect(screen.getByRole("table")).toBeInTheDocument();
-    cleanup(); await open(); expect(save).not.toHaveBeenCalled();
-    expect(screen.queryByText(MESSAGES.run.saved)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "다시 저장" })).not.toBeInTheDocument();
-  });
-  it("restores aborted state and snapshot", async () => {
-    device.saveRun(timer.id, saved("aborted")); await open();
-    expect(screen.getByText("발표를 중단했어요")).toBeInTheDocument();
-    expect(local().shareCode).toBe("existing-share");
+  it.each(["finished", "aborted"] as const)("reopens a %s run at the start screen without saving and drops its share", async (status) => {
+    const save = vi.spyOn(api, "saveRecord"); device.saveRun(timer.id, saved(status));
+    await open();
+    expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: MESSAGES.share.create })).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.queryByText(MESSAGES.run.aborted)).not.toBeInTheDocument();
+    expect(device.loadRun(timer.id)).toBeNull(); expect(save).not.toHaveBeenCalled();
   });
   it("discards running older than 12 corrected hours and shows current segments", async () => {
     const clear = vi.spyOn(device, "clearRun");
@@ -259,7 +256,7 @@ describe("RunScreen", () => {
     await open(); expect(screen.getByRole("button", { name: "중단" })).toBeInTheDocument();
   });
   it("rereads segments and clears share code on restart; idle restoration uses current segments", async () => {
-    device.saveRun(timer.id, saved("finished")); await open();
+    await open(); click("시작"); await finish();
     const updated = [{ ...segments[0], name: "새 도입", durationSec: 90 }];
     await api.updateTimer(timer.id, { name: "새 발표", segments: updated });
     click("다시 하기"); await flush();
@@ -270,11 +267,17 @@ describe("RunScreen", () => {
     click("시작"); expect(local().segments).toEqual(segments);
   });
   it("keeps the result with an error if restart cannot reread the timer", async () => {
-    device.saveRun(timer.id, saved("finished")); await open();
+    await open(); click("시작"); await finish();
     await api.deleteTimer(timer.id); click("다시 하기"); await flush();
     expect(screen.getByRole("table")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(MESSAGES.timers.notFound);
     expect(local().run.status).toBe("finished");
+  });
+  it("keeps the running controls and finish hint clear of the fixed bottom badge", async () => {
+    await open(); click("시작");
+    expect(screen.getByText(MESSAGES.run.tapHint).parentElement).toHaveClass("pb-12");
+    space(); tick(500); space();
+    expect(screen.getByText(MESSAGES.timerFace.finishHint)).toHaveClass("bottom-30");
   });
   it("persists only on actions, not on clock frames", async () => {
     const persist = vi.spyOn(device, "saveRun"); await open(); click("시작");

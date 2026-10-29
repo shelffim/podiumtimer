@@ -41,7 +41,7 @@
 |------|------|
 | 늦음 (구간 차이 > +1초, 남은 시간 마이너스) | `text-red-400` / 막대 `bg-red-400` |
 | 빠름 (구간 차이 < −1초) | `text-blue-400` / 막대 `bg-blue-400` |
-| 정시 (차이 ±1초 이내) | `text-neutral-300` |
+| 정시 (반올림한 차이 1초 이하) | `text-neutral-300` |
 | 에러 문구, 입력 오류 테두리 | `text-red-400`, `border-red-400` |
 | MOCK 모드 배지 | `bg-amber-500/15 text-amber-300 border border-amber-500/40` |
 

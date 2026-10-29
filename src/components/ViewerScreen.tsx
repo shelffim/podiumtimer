@@ -98,7 +98,7 @@ export function ViewerScreen({ code, contactEmail }: { code: string; contactEmai
   if (!share) return shell(<p role="status" className="text-sm text-soft">{MESSAGES.timers.loading}</p>);
   if (share.state.status === "running") {
     const view = computeTimer(share.segments, share.state, now);
-    return <main className="relative flex h-dvh touch-manipulation flex-col overflow-hidden select-none">
+    return <main className="relative flex h-dvh touch-manipulation flex-col overflow-hidden pb-12 select-none">
       <header className="flex shrink-0 items-center gap-2 border-b border-line px-4 py-2.5">
         <span className="chip tabular-nums">{progressLabel(view.segmentIndex, share.segments.length)}</span>
         <span className="flex-1" />

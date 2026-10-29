@@ -38,6 +38,11 @@ export function isStaleRun(run: RunState, nowMs: number): boolean {
   return run.status === "running" && run.startedAt !== null && nowMs - run.startedAt > STALE_RUN_MS;
 }
 
+/** 다시 열었을 때 이어갈 실행인지. 끝났거나 12시간 지난 실행은 버리고 대기로 돌아가요. */
+export function canResumeRun(run: RunState, nowMs: number): boolean {
+  return run.status !== "finished" && run.status !== "aborted" && !isStaleRun(run, nowMs);
+}
+
 export function computeTimer(segments: Segment[], run: RunState, nowMs: number): TimerView {
   const total = totalPlannedMs(segments);
   if (run.status === "idle" || segments.length === 0) {
@@ -94,7 +99,8 @@ export function resultTotals(times: SegmentTime[]): Omit<SegmentResult, "name"> 
 }
 
 export function verdictOf(diffMs: number): Verdict {
-  if (Math.abs(diffMs) <= ON_TIME_TOLERANCE_MS) return "on_time";
+  // 화면에 보이는 반올림한 초로 판정해야 "0:01 늦음"과 "정시"가 섞이지 않아요.
+  if (displayedSeconds(diffMs) * 1000 <= ON_TIME_TOLERANCE_MS) return "on_time";
   return diffMs > 0 ? "late" : "early";
 }
 
@@ -131,6 +137,10 @@ export function isOvertime(ms: number): boolean {
   return formatClock(ms).startsWith("-");
 }
 
+function displayedSeconds(ms: number): number {
+  return Math.round(Math.abs(ms) / 1000);
+}
+
 export function formatDuration(ms: number): string {
-  return clockFromSeconds(Math.round(Math.abs(ms) / 1000));
+  return clockFromSeconds(displayedSeconds(ms));
 }

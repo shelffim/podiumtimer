@@ -13,6 +13,20 @@ beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
 afterEach(() => vi.restoreAllMocks());
 
 describe("device storage", () => {
+  it("keeps an editor draft in this tab only until it is taken once", () => {
+    const draft = { name: "발표", segments: [{ id: "s1", name: "도입", clock: "1:0" }] };
+    expect(device.takeDraft("/timers/a")).toBeNull();
+    device.saveDraft("/timers/a", draft);
+    expect(localStorage.length).toBe(0);
+    expect(device.takeDraft("/timers/b")).toBeNull();
+    expect(device.takeDraft("/timers/a")).toEqual(draft);
+    expect(device.takeDraft("/timers/a")).toBeNull();
+    sessionStorage.setItem("draft:/timers/a", "{broken");
+    expect(device.takeDraft("/timers/a")).toBeNull();
+    sessionStorage.setItem("draft:/timers/a", JSON.stringify({ name: 1 }));
+    expect(device.takeDraft("/timers/a")).toBeNull();
+  });
+
   it("saves, loads and clears isolated run keys without changing the run snapshot", () => {
     expect(device.loadRun("a")).toBeNull();
     device.saveRun("a", local);
