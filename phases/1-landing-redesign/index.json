@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "landing-sections",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-10-29T22:34:39+0900",
+      "summary": "랜딩의 의미 색 헤드라인·비교 그림·기능 카드 3개·하단 로그인 띠와 버튼별 오류 표시를 구현하고 lint·build·전체 테스트 562개를 통과했어요",
+      "completed_at": "2026-10-29T22:38:08+0900"
     }
   ],
   "created_at": "2026-10-29T22:28:41+0900"
