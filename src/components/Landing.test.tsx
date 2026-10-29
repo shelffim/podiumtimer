@@ -57,7 +57,7 @@ describe("Landing", () => {
     expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400", "verdict");
     expect(preview).toHaveTextContent("3 / 6");
     expect(preview).toHaveTextContent("직전 구간 · 문제 정의");
-    expect(preview).toHaveTextContent("전체 남은 시간7:12");
+    expect(preview).toHaveTextContent("전체 남은 시간7:16");
     for (const feature of MESSAGES.landing.features) {
       expect(screen.getByRole("heading", { name: feature.title })).toBeInTheDocument();
       expect(screen.getByText(feature.body)).toBeInTheDocument();

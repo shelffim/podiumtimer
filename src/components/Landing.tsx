@@ -3,40 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MESSAGES, progressLabel } from "@/lib/messages";
-import { computeTimer } from "@/lib/timer";
+import { MESSAGES } from "@/lib/messages";
 import { safeReturnTo } from "@/lib/validation";
 import { api, dataMode } from "@/services/api";
 import { AppBar } from "./AppBar";
 import { Icon, type IconName } from "./Icon";
-import { TimerFace } from "./TimerFace";
+import { LandingPreview } from "./LandingPreview";
+import { useDemoFrame } from "./useDemoFrame";
 
 const copy = MESSAGES.landing;
 const featureIcons: IconName[] = ["gauge", "link", "chart"];
-const previewSeconds = [30, 90, 120, 150, 60, 150];
-const previewSegments = copy.previewSegments.map((name, index) => ({ id: String(index), name, durationSec: previewSeconds[index] }));
-// 둘째 구간을 12초 늦게 넘기고 셋째 구간에서 36초가 지난 순간이에요(남은 1:24, 직전 구간 0:12 늦음).
-const previewView = computeTimer(previewSegments, { status: "running", startedAt: 0, transitions: [30_000, 132_000], rev: 0 }, 168_000);
 const inlineLink = "focus-ring rounded-sm text-white underline underline-offset-2";
 
-// 가입 뒤 보게 될 진행 화면과 같은 구성(위쪽 바 + TimerFace)을 멈춘 채로 보여줘요.
-function LandingPreview() {
-  return (
-    <div aria-hidden="true" className="card gap-0 overflow-hidden p-0">
-      <div className="flex items-center gap-2 border-b border-line px-5 py-3">
-        <span className="chip tabular-nums">{progressLabel(previewView.segmentIndex, previewSegments.length)}</span>
-        <span className="flex-1" />
-        <span className="plate size-9"><Icon name="undo" size={16} /></span>
-        <span className="plate size-9"><Icon name="square" size={13} /></span>
-      </div>
-      <div className="px-5 pt-6 pb-5">
-        <TimerFace segments={previewSegments} view={previewView} compact />
-      </div>
-    </div>
-  );
-}
-
 export function Landing({ next }: { next?: string }) {
+  const frame = useDemoFrame();
   const router = useRouter();
   const destination = safeReturnTo(next, "/timers");
   const [status, setStatus] = useState<"checking" | "ready" | "signingIn">("checking");
@@ -89,7 +69,7 @@ export function Landing({ next }: { next?: string }) {
             </p>
           </div>
         </div>
-        <LandingPreview />
+        <LandingPreview frame={frame} />
       </div>
       <ul className="flex flex-col gap-4">
         {copy.features.map((feature, index) => <li key={feature.title} className="flex items-start gap-4">

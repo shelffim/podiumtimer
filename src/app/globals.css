@@ -8,6 +8,12 @@
   --color-soft: #a8acb3;
   --color-muted: #7c828a;
   --color-ink: #0a0b0d;
+  --animate-demo-verdict: demo-verdict 200ms ease-out;
+
+  @keyframes demo-verdict {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+  }
 }
 
 :root {
