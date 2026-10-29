@@ -97,7 +97,7 @@ export function TimerList() {
           </div>
           <button type="button" className="btn btn-primary" onClick={createTimer}><Icon name="plus" size={18} />{copy.firstTimer}</button>
         </div>
-        : <ul className="grid gap-3 md:grid-cols-2">
+        : <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {data.timers.map((timer) => <li key={timer.id} className="card">
             <div className="flex flex-col gap-1">
               <h2 className="heading">{timer.name}</h2>

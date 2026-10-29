@@ -59,7 +59,7 @@ export function ViewerScreen({ code, contactEmail }: { code: string; contactEmai
     ? <span role="status" className="chip text-soft"><Icon name="wifi-off" size={14} />{copy.disconnected}</span>
     : null;
   const shell = (content: ReactNode, mainClass = "") => <div className="flex min-h-dvh flex-col pb-12">
-    <AppBar>{disconnected}{current?.nickname ? <span className="caption">{current.nickname}</span> : null}</AppBar>
+    <AppBar narrow>{disconnected}{current?.nickname ? <span className="caption">{current.nickname}</span> : null}</AppBar>
     <main className={`page page-narrow ${mainClass}`}>{content}</main>
     <Footer contactEmail={contactEmail} />
   </div>;

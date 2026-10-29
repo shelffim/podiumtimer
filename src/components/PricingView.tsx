@@ -79,7 +79,7 @@ export function PricingView({ returnTo }: { returnTo: string }) {
       </div>
       {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
       {/* 30일권과 구매 버튼이 폰 첫 화면에 보이도록 30일권 카드를 먼저 둬요. */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid w-full max-w-[960px] gap-4 md:grid-cols-2">
         <Tier name={MESSAGES.timers.pass} price={copy.price} period={copy.period} features={copy.passFeatures} featured>
           <button type="button" onClick={purchase} disabled={purchasing} className="btn btn-primary btn-lg w-full">
             {dataMode === "mock" ? copy.mockBuy : status?.plan === "pass" ? copy.extend : copy.buy}

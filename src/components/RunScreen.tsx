@@ -189,7 +189,7 @@ export function RunScreen({ timerId, contactEmail }: { timerId: string; contactE
   }
 
   const managed = (body: ReactNode, title?: string) => <div className="flex min-h-dvh flex-col pb-12">
-    <AppBar back="/timers" title={title} />
+    <AppBar narrow back="/timers" title={title} />
     <main className="page page-narrow">{body}</main>
     <Footer contactEmail={contactEmail} />
   </div>;

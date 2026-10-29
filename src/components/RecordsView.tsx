@@ -92,7 +92,7 @@ export function RecordsView({ timerId }: { timerId: string }) {
           <h2 className="title">{data.timer.name}</h2>
           <Link href={`/timers/${timerId}/run`} className="btn btn-primary"><Icon name="play" size={18} />{MESSAGES.timers.start}</Link>
         </div>
-        <div className="grid items-start gap-6 md:grid-cols-2">
+        <div className="grid items-start gap-6 md:grid-cols-2 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           {rows ? <section aria-labelledby={`${viewId}-average`} className="card">
             <div className="flex flex-col gap-1">
               <h3 id={`${viewId}-average`} className="heading">{copy.average}</h3>

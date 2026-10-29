@@ -27,6 +27,13 @@ async function newForm(clock: string) {
 async function save() { await userEvent.click(screen.getByRole("button", { name: "저장" })); }
 
 describe("TimerEditor", () => {
+  it("aligns the app bar with the narrow editor body", async () => {
+    render(<TimerEditor />);
+    await screen.findByLabelText("타이머 이름");
+    expect(screen.getByRole("banner")).toHaveClass("bar", "bar-narrow");
+    expect(screen.getByLabelText("타이머 이름").closest(".page")).toHaveClass("page-narrow");
+  });
+
   it("starts with one empty segment and creates a timer with rehearsal feedback", async () => {
     await newForm("3:00");
     await save();

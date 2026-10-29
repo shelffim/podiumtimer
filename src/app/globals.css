@@ -32,11 +32,16 @@ body {
 }
 
 @layer components {
-  .page {
-    @apply mx-auto flex w-full max-w-[960px] flex-1 flex-col gap-6 px-5 pt-4 pb-8 md:gap-8 md:px-8 md:pt-6 md:pb-12;
+  .page,
+  .bar {
+    @apply mx-auto w-full max-w-[960px] px-5 md:px-8 lg:max-w-[1200px];
   }
-  .page-narrow {
-    @apply max-w-[560px];
+  .page {
+    @apply flex flex-1 flex-col gap-6 pt-4 pb-8 md:gap-8 md:pt-6 md:pb-12;
+  }
+  .page-narrow,
+  .bar-narrow {
+    @apply max-w-[560px] lg:max-w-[560px];
   }
 
   .title {

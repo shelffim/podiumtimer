@@ -49,7 +49,7 @@ export function BillingSuccess({ returnTo }: { returnTo: string }) {
   }, [destination, router]);
 
   return <>
-    <AppBar />
+    <AppBar narrow />
     <div className="page page-narrow justify-center">
       <div className="card items-start gap-5 p-8">
         {delayed ? <>

@@ -6,7 +6,7 @@ import { MESSAGES } from "@/lib/messages";
 export default function NotFoundPage() {
   return (
     <PageShell>
-      <AppBar />
+      <AppBar narrow />
       <div className="page page-narrow">
         <h1 className="title">{MESSAGES.notFound.title}</h1>
         <Link href="/" className="btn btn-primary self-start">{MESSAGES.notFound.home}</Link>
