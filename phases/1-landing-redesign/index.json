@@ -2,9 +2,29 @@
   "project": "Podium Timer",
   "phase": "1-landing-redesign",
   "steps": [
-    { "step": 0, "name": "demo-frame", "status": "pending" },
-    { "step": 1, "name": "wide-layout", "status": "pending" },
-    { "step": 2, "name": "landing-preview", "status": "pending" },
-    { "step": 3, "name": "landing-sections", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "demo-frame",
+      "status": "completed",
+      "summary": "랜딩 미리보기의 36칸 반복 장면·정지 장면·결과·평균 예시 데이터와 검증 테스트 14개를 구현했어요",
+      "started_at": "2026-10-29T22:28:41+0900",
+      "completed_at": "2026-10-29T22:30:03+0900"
+    },
+    {
+      "step": 1,
+      "name": "wide-layout",
+      "status": "pending"
+    },
+    {
+      "step": 2,
+      "name": "landing-preview",
+      "status": "pending"
+    },
+    {
+      "step": 3,
+      "name": "landing-sections",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-10-29T22:28:41+0900"
 }
