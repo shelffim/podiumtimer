@@ -21,7 +21,10 @@
     {
       "step": 2,
       "name": "landing-preview",
-      "status": "pending"
+      "status": "completed",
+      "summary": "250ms 자동 재생 훅·움직임 줄이기 대응·조작 모양과 compact 배지 강조 미리보기를 구현하고 lint·build·전체 테스트 553개를 통과했어요",
+      "started_at": "2026-10-29T22:31:55+0900",
+      "completed_at": "2026-10-29T22:34:39+0900"
     },
     {
       "step": 3,
