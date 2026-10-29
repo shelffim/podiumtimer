@@ -13,7 +13,10 @@
     {
       "step": 1,
       "name": "wide-layout",
-      "status": "pending"
+      "status": "completed",
+      "summary": "본문·위쪽 바 공통 폭과 narrow 560px 정렬, lg 1200px·목록 3열·기록 3:2·요금제 960px 배치를 적용하고 테스트 3개와 lint·build·전체 테스트를 통과했어요",
+      "started_at": "2026-10-29T22:30:03+0900",
+      "completed_at": "2026-10-29T22:31:55+0900"
     },
     {
       "step": 2,
