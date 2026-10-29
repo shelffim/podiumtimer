@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { verdictColor, verdictTone } from "./verdictColor";
+import { verdictColor, verdictTone, verdictFill } from "./verdictColor";
 
 describe("verdictColor", () => {
+  it("uses the same verdict meaning for bars and dots", () => {
+    expect(verdictFill).toEqual({ late: "bg-red-400", early: "bg-blue-400", on_time: "bg-[#6b717b]" });
+  });
   it("colors late red, early blue and on time neutral, never green", () => {
     expect(verdictColor).toEqual({ late: "text-red-400", early: "text-blue-400", on_time: "text-neutral-300" });
   });

@@ -5,7 +5,7 @@ import { MESSAGES } from "@/lib/messages";
 export default function TermsPage() {
   return (
     <PageShell>
-      <AppBar />
+      <AppBar narrow />
       <div className="page page-narrow">
         <h1 className="title">{MESSAGES.terms.title}</h1>
         {MESSAGES.terms.sections.map((section) => (

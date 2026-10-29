@@ -192,7 +192,7 @@ export function TimerEditor({ timerId }: { timerId?: string }) {
   const fieldId = (key: string) => `${formId}-${key}`;
 
   return <>
-    <AppBar back="/timers" title={timerId ? copy.editTitle : copy.createTitle} />
+    <AppBar narrow back="/timers" title={timerId ? copy.editTitle : copy.createTitle} />
     <div className="page page-narrow">
       {notFound ? <div className="flex flex-col items-start gap-3">
         <p role="alert" className="text-sm text-red-400">{copy.notFound}</p>

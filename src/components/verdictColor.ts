@@ -13,3 +13,9 @@ export const verdictTone: Record<Verdict, string> = {
   early: "bg-blue-400/15 text-blue-400",
   on_time: "bg-white/10 text-neutral-300",
 };
+
+export const verdictFill: Record<Verdict, string> = {
+  late: "bg-red-400",
+  early: "bg-blue-400",
+  on_time: "bg-[#6b717b]",
+};

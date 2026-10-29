@@ -3,44 +3,25 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MESSAGES, progressLabel } from "@/lib/messages";
-import { computeTimer } from "@/lib/timer";
+import { MESSAGES } from "@/lib/messages";
 import { safeReturnTo } from "@/lib/validation";
 import { api, dataMode } from "@/services/api";
 import { AppBar } from "./AppBar";
-import { Icon, type IconName } from "./Icon";
-import { TimerFace } from "./TimerFace";
+import { Icon } from "./Icon";
+import { FeatureCards } from "./FeatureCards";
+import { PaceCompare } from "./PaceCompare";
+import { LandingPreview } from "./LandingPreview";
+import { useDemoFrame } from "./useDemoFrame";
 
 const copy = MESSAGES.landing;
-const featureIcons: IconName[] = ["gauge", "link", "chart"];
-const previewSeconds = [30, 90, 120, 150, 60, 150];
-const previewSegments = copy.previewSegments.map((name, index) => ({ id: String(index), name, durationSec: previewSeconds[index] }));
-// 둘째 구간을 12초 늦게 넘기고 셋째 구간에서 36초가 지난 순간이에요(남은 1:24, 직전 구간 0:12 늦음).
-const previewView = computeTimer(previewSegments, { status: "running", startedAt: 0, transitions: [30_000, 132_000], rev: 0 }, 168_000);
 const inlineLink = "focus-ring rounded-sm text-white underline underline-offset-2";
 
-// 가입 뒤 보게 될 진행 화면과 같은 구성(위쪽 바 + TimerFace)을 멈춘 채로 보여줘요.
-function LandingPreview() {
-  return (
-    <div aria-hidden="true" className="card gap-0 overflow-hidden p-0">
-      <div className="flex items-center gap-2 border-b border-line px-5 py-3">
-        <span className="chip tabular-nums">{progressLabel(previewView.segmentIndex, previewSegments.length)}</span>
-        <span className="flex-1" />
-        <span className="plate size-9"><Icon name="undo" size={16} /></span>
-        <span className="plate size-9"><Icon name="square" size={13} /></span>
-      </div>
-      <div className="px-5 pt-6 pb-5">
-        <TimerFace segments={previewSegments} view={previewView} compact />
-      </div>
-    </div>
-  );
-}
-
 export function Landing({ next }: { next?: string }) {
+  const frame = useDemoFrame();
   const router = useRouter();
   const destination = safeReturnTo(next, "/timers");
   const [status, setStatus] = useState<"checking" | "ready" | "signingIn">("checking");
-  const [failed, setFailed] = useState(false);
+  const [failedAt, setFailedAt] = useState<"hero" | "closing" | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -51,55 +32,62 @@ export function Landing({ next }: { next?: string }) {
       else setStatus("ready");
     }).catch(() => {
       if (!active) return;
-      setFailed(true);
+      setFailedAt("hero");
       setStatus("ready");
     });
 
     return () => { active = false; };
   }, [destination, router]);
 
-  async function signIn() {
+  async function signIn(source: "hero" | "closing") {
     if (status !== "ready") return;
     setStatus("signingIn");
-    setFailed(false);
+    setFailedAt(null);
     try {
       await api.signIn(next);
       router.push(destination);
     } catch {
-      setFailed(true);
+      setFailedAt(source);
       setStatus("ready");
     }
   }
 
   return <>
     <AppBar />
-    <div className="page">
-      <div className="grid gap-8 pt-4 md:grid-cols-2 md:items-start md:gap-6">
+    <div className="page gap-[72px] md:gap-[72px] lg:gap-32">
+      <section className="grid gap-8 pt-4 md:grid-cols-2 md:items-center md:gap-6 lg:min-h-[min(calc(100svh-128px),720px)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <div className="flex flex-col gap-6">
-          <h1 className="hero">{copy.headline}</h1>
+          <h1 className="hero">
+            {copy.headlineParts[0]}{" "}<span className="text-blue-400">{copy.headlineParts[1]}</span>{" "}<span className="text-red-400">{copy.headlineParts[2]}</span>
+          </h1>
           <p className="text-pretty text-soft">{copy.description}</p>
           <div className="flex flex-col items-start gap-2.5">
-            <button type="button" disabled={status !== "ready"} onClick={signIn} className="btn btn-primary btn-lg disabled:cursor-wait">
+            <button type="button" disabled={status !== "ready"} onClick={() => signIn("hero")} className="btn btn-primary btn-lg disabled:cursor-wait">
               <Icon name="log-in" />{dataMode === "mock" ? copy.mockSignIn : copy.googleSignIn}
             </button>
-            {failed && <p role="alert" className="text-sm text-red-400">{copy.signInFailed}</p>}
+            {failedAt === "hero" && <p role="alert" className="text-sm text-red-400">{copy.signInFailed}</p>}
             <p className="caption">
               {MESSAGES.timers.free} · {copy.minimumAge} · {copy.consentLead} <Link className={inlineLink} href="/terms">{MESSAGES.terms.title}</Link>{copy.consentAnd}{" "}
               <Link className={inlineLink} href="/privacy">{MESSAGES.privacy.title}</Link>{copy.consentTail}
             </p>
           </div>
         </div>
-        <LandingPreview />
-      </div>
-      <ul className="flex flex-col gap-4">
-        {copy.features.map((feature, index) => <li key={feature.title} className="flex items-start gap-4">
-          <span className="plate"><Icon name={featureIcons[index]} /></span>
-          <div className="flex flex-col gap-0.5">
-            <h2 className="label">{feature.title}</h2>
-            <p className="text-sm text-soft">{feature.body}</p>
-          </div>
-        </li>)}
-      </ul>
+        <LandingPreview frame={frame} />
+      </section>
+      <PaceCompare />
+      <FeatureCards frame={frame} />
+      <section className="card gap-6 rounded-[32px] p-7 md:flex-row md:items-center md:justify-between lg:p-16">
+        <div className="flex min-w-0 flex-col gap-4">
+          <h2 className="display">{copy.closingTitle}</h2>
+          <p className="caption">{[MESSAGES.timers.free, copy.minimumAge].join(MESSAGES.common.separator)}</p>
+        </div>
+        <div className="flex shrink-0 flex-col items-start gap-2.5">
+          <button type="button" disabled={status !== "ready"} onClick={() => signIn("closing")} className="btn btn-primary btn-lg disabled:cursor-wait">
+            <Icon name="log-in" />{dataMode === "mock" ? copy.mockSignIn : copy.googleSignIn}
+          </button>
+          {failedAt === "closing" && <p role="alert" className="text-sm text-red-400">{copy.signInFailed}</p>}
+        </div>
+      </section>
     </div>
   </>;
 }

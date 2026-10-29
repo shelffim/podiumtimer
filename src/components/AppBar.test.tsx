@@ -6,6 +6,17 @@ import { AppBar } from "./AppBar";
 afterEach(cleanup);
 
 describe("AppBar", () => {
+  it("uses the shared wide layout by default", () => {
+    render(<AppBar />);
+    expect(screen.getByRole("banner")).toHaveClass("bar");
+    expect(screen.getByRole("banner")).not.toHaveClass("bar-narrow");
+  });
+
+  it("uses the shared 560px layout when narrow", () => {
+    render(<AppBar narrow />);
+    expect(screen.getByRole("banner")).toHaveClass("bar", "bar-narrow");
+  });
+
   it("shows the service name as a home link without a back target", () => {
     render(<AppBar />);
     expect(screen.getByRole("banner")).toBeInTheDocument();

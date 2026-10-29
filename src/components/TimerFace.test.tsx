@@ -61,4 +61,25 @@ describe("TimerFace", () => {
     render(<TimerFace segments={segments} view={{ ...view, totalRemainingMs: -80_000 }} />);
     expect(screen.getByText("-1:20")).toHaveClass("text-red-400");
   });
+
+  it("replays the motion-safe badge emphasis only when the compact verdict text changes", () => {
+    const lastResult = toSegmentResult({ name: "찬성 입론", plannedMs: 60_000, actualMs: 72_000 });
+    const resultView = { ...view, segmentIndex: 1, lastResult };
+    const { rerender } = render(<TimerFace segments={segments} view={resultView} compact />);
+    const badge = screen.getByText("0:12 늦음");
+    expect(badge).toHaveClass("motion-safe:animate-demo-verdict");
+    expect(screen.getByText("1:00")).toHaveClass("lg:text-[120px]");
+    rerender(<TimerFace segments={segments} view={{ ...resultView, segmentRemainingMs: 59_000 }} compact />);
+    expect(screen.getByText("0:12 늦음")).toBe(badge);
+    const changedResult = toSegmentResult({ ...lastResult, actualMs: 56_000 });
+    rerender(<TimerFace segments={segments} view={{ ...resultView, lastResult: changedResult }} compact />);
+    expect(screen.getByText("0:04 빠름")).not.toBe(badge);
+  });
+
+  it("keeps the running timer badge free of preview animation and its clock size unchanged", () => {
+    const lastResult = toSegmentResult({ name: "찬성 입론", plannedMs: 60_000, actualMs: 72_000 });
+    render(<TimerFace segments={segments} view={{ ...view, lastResult }} />);
+    expect(screen.getByText("0:12 늦음")).not.toHaveClass("motion-safe:animate-demo-verdict");
+    expect(screen.getByText("1:00")).not.toHaveClass("lg:text-[120px]");
+  });
 });

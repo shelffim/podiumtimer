@@ -8,6 +8,12 @@
   --color-soft: #a8acb3;
   --color-muted: #7c828a;
   --color-ink: #0a0b0d;
+  --animate-demo-verdict: demo-verdict 200ms ease-out;
+
+  @keyframes demo-verdict {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+  }
 }
 
 :root {
@@ -32,18 +38,26 @@ body {
 }
 
 @layer components {
-  .page {
-    @apply mx-auto flex w-full max-w-[960px] flex-1 flex-col gap-6 px-5 pt-4 pb-8 md:gap-8 md:px-8 md:pt-6 md:pb-12;
+  .page,
+  .bar {
+    @apply mx-auto w-full max-w-[960px] px-5 md:px-8 lg:max-w-[1200px];
   }
-  .page-narrow {
-    @apply max-w-[560px];
+  .page {
+    @apply flex flex-1 flex-col gap-6 pt-4 pb-8 md:gap-8 md:pt-6 md:pb-12;
+  }
+  .page-narrow,
+  .bar-narrow {
+    @apply max-w-[560px] lg:max-w-[560px];
   }
 
   .title {
     @apply text-[32px] leading-[1.13] font-normal tracking-[-0.4px] break-words break-keep text-white;
   }
   .hero {
-    @apply text-4xl leading-[1.11] font-normal tracking-[-0.5px] text-balance break-keep text-white md:text-[52px] md:leading-none md:tracking-[-1.3px];
+    @apply text-4xl leading-[1.11] font-normal tracking-[-0.5px] text-balance break-keep text-white md:text-[52px] md:leading-none md:tracking-[-1.3px] xl:text-[68px];
+  }
+  .display {
+    @apply text-[28px] leading-[1.15] font-normal tracking-[-0.6px] text-balance break-keep text-white md:text-[36px] lg:text-[44px];
   }
   .heading {
     @apply text-lg leading-[1.33] font-semibold break-words break-keep text-white;

@@ -5,7 +5,7 @@ import { MESSAGES } from "@/lib/messages";
 export default function PrivacyPage() {
   return (
     <PageShell>
-      <AppBar />
+      <AppBar narrow />
       <div className="page page-narrow">
         <h1 className="title">{MESSAGES.privacy.title}</h1>
         {MESSAGES.privacy.sections.map((section) => (

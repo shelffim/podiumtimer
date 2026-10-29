@@ -4,6 +4,17 @@ import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
 import { MESSAGES, errorMessage, planLimitMessage, diffLabel, verdictWord, planLabel, timerSummary, totalTimeLabel, segmentFieldLabel, segmentCountLabel, segmentUsageLabel, segmentPlaceholder, progressLabel, nextSegmentLabel, lastResultLabel, seatLabel, seatCountLabel, seatsFullLabel, savedLabel, viewerFullLabel, recordDateLabel, recordCountLabel, recordTotalsLabel, averageCaption, resultSummaryLabel } from "./messages";
 
 describe("messages", () => {
+  it("joins the landing headline fragments into one sentence", () => {
+    expect(MESSAGES.landing.headlineParts).toEqual(["구간마다, 계획보다", "빨랐는지", "늦었는지."]);
+    expect(MESSAGES.landing.headlineParts.join(" ")).toBe(MESSAGES.landing.headline);
+  });
+
+  it("explains the total overrun and the two latest segments", () => {
+    expect(MESSAGES.landing.overtimeNote(13)).toBe("끝나고 나서야 13초 넘친 걸 알아요. 어느 구간 때문인지는 몰라요.");
+    expect(MESSAGES.landing.lateSegmentsNote([
+      { name: "결과", diffMs: 21_000 }, { name: "문제 정의", diffMs: 12_000 },
+    ])).toBe("결과에서 0:21, 문제 정의에서 0:12 늦었어요. 다음 연습에서 어디를 줄일지 바로 보여요.");
+  });
   it("provides billing screen copy from shared product constants", () => {
     expect(MESSAGES.pricing.price).toBe(`$${PASS_PRICE_USD}`);
     expect(MESSAGES.pricing.period).toBe(`/ ${PASS_DAYS}일`);

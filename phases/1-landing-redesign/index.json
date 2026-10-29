@@ -1,0 +1,40 @@
+{
+  "project": "Podium Timer",
+  "phase": "1-landing-redesign",
+  "steps": [
+    {
+      "step": 0,
+      "name": "demo-frame",
+      "status": "completed",
+      "summary": "랜딩 미리보기의 36칸 반복 장면·정지 장면·결과·평균 예시 데이터와 검증 테스트 14개를 구현했어요",
+      "started_at": "2026-10-29T22:28:41+0900",
+      "completed_at": "2026-10-29T22:30:03+0900"
+    },
+    {
+      "step": 1,
+      "name": "wide-layout",
+      "status": "completed",
+      "summary": "본문·위쪽 바 공통 폭과 narrow 560px 정렬, lg 1200px·목록 3열·기록 3:2·요금제 960px 배치를 적용하고 테스트 3개와 lint·build·전체 테스트를 통과했어요",
+      "started_at": "2026-10-29T22:30:03+0900",
+      "completed_at": "2026-10-29T22:31:55+0900"
+    },
+    {
+      "step": 2,
+      "name": "landing-preview",
+      "status": "completed",
+      "summary": "250ms 자동 재생 훅·움직임 줄이기 대응·조작 모양과 compact 배지 강조 미리보기를 구현하고 lint·build·전체 테스트 553개를 통과했어요",
+      "started_at": "2026-10-29T22:31:55+0900",
+      "completed_at": "2026-10-29T22:34:39+0900"
+    },
+    {
+      "step": 3,
+      "name": "landing-sections",
+      "status": "completed",
+      "started_at": "2026-10-29T22:34:39+0900",
+      "summary": "랜딩의 의미 색 헤드라인·비교 그림·기능 카드 3개·하단 로그인 띠와 버튼별 오류 표시를 구현하고 lint·build·전체 테스트 562개를 통과했어요",
+      "completed_at": "2026-10-29T22:38:08+0900"
+    }
+  ],
+  "created_at": "2026-10-29T22:28:41+0900",
+  "completed_at": "2026-10-29T22:38:08+0900"
+}
