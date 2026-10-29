@@ -33,7 +33,7 @@ src/
 │       ├── share/[code]/route.ts       시청자용 공유 상태 조회
 │       ├── billing/checkout/route.ts   Polar 결제창 생성
 │       └── billing/webhook/route.ts    Polar 웹훅
-├── components/                         타이머 화면, 타임라인 바, 구간 편집기, 결과 표, 평균 그래프
+├── components/                         타이머 화면, 타임라인 바, 구간 편집기, 결과 표, 평균 그래프, 랜딩(미리보기·비교 그림·기능 카드)
 ├── types/                              timer.ts, run.ts, share.ts
 ├── lib/
 │   ├── timer.ts                        reduceRun, computeTimer, buildResult, verdictOf
@@ -42,6 +42,7 @@ src/
 │   ├── seats.ts                        admit (Presence 입장 판정)
 │   ├── validation.ts                   zod 스키마 (타이머·구간·닉네임·공유 상태)
 │   ├── time.ts                         서버 시각 보정
+│   ├── demo.ts                         랜딩 미리보기 장면(demoFrame)과 예시 데이터
 │   └── messages.ts                     한국어 문구 모음
 ├── services/
 │   ├── api/                            화면이 부르는 유일한 데이터 창구: index.ts · live.ts · mock.ts · device.ts(실행 상태·닉네임·clientId 기기 저장)

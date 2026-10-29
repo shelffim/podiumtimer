@@ -1,0 +1,10 @@
+{
+  "project": "Podium Timer",
+  "phase": "1-landing-redesign",
+  "steps": [
+    { "step": 0, "name": "demo-frame", "status": "pending" },
+    { "step": 1, "name": "wide-layout", "status": "pending" },
+    { "step": 2, "name": "landing-preview", "status": "pending" },
+    { "step": 3, "name": "landing-sections", "status": "pending" }
+  ]
+}
