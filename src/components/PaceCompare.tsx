@@ -25,7 +25,7 @@ export function PaceCompare() {
           </div>
           <div className="flex min-w-0 flex-col gap-4">
             <div className={barLayout}>
-              <div aria-hidden="true" className="flex h-4 overflow-hidden rounded-full">
+              <div aria-hidden="true" className="flex h-4 gap-0.5 overflow-hidden rounded-full">
                 <div data-planned-bar className="bg-[#4a4f57]" style={{ flexGrow: totals.plannedMs, flexBasis: 0 }} />
                 <div data-overtime-bar className={verdictFill.late} style={{ flexGrow: totals.diffMs, flexBasis: 0 }} />
               </div>
@@ -41,7 +41,7 @@ export function PaceCompare() {
           </div>
           <div className="flex min-w-0 flex-col gap-5">
             <div className={barLayout}>
-              <div aria-hidden="true" className="flex h-4 overflow-hidden rounded-full">
+              <div aria-hidden="true" className="flex h-4 gap-0.5 overflow-hidden rounded-full">
                 {DEMO_RESULTS.map((result) => <div key={result.name} data-result-bar className={verdictFill[result.verdict]}
                   style={{ flexGrow: result.actualMs, flexBasis: 0 }} />)}
               </div>

@@ -55,7 +55,7 @@ export function Landing({ next }: { next?: string }) {
   return <>
     <AppBar />
     <div className="page gap-[72px] md:gap-[72px] lg:gap-32">
-      <section className="grid gap-8 pt-4 md:grid-cols-2 md:items-center md:gap-6 lg:min-h-[calc(100svh-128px)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+      <section className="grid gap-8 pt-4 md:grid-cols-2 md:items-center md:gap-6 lg:min-h-[min(calc(100svh-128px),720px)] lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <div className="flex flex-col gap-6">
           <h1 className="hero">
             {copy.headlineParts[0]}{" "}<span className="text-blue-400">{copy.headlineParts[1]}</span>{" "}<span className="text-red-400">{copy.headlineParts[2]}</span>
