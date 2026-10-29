@@ -6,6 +6,7 @@
 - 구조·인터페이스·DB·보안: `docs/ARCHITECTURE.md`
 - 결정 근거: `docs/ADR.md`
 - 화면 규칙: `docs/DESIGN.md`
+- 브라우저 테스트 시나리오·알려진 문제: `docs/BROWSER_TEST.md` (브라우저로 확인할 때마다 이 문서를 따른다)
 
 ## 기술 스택
 - Next.js (App Router) + TypeScript strict mode
