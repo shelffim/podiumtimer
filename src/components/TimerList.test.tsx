@@ -21,12 +21,17 @@ describe("TimerList", () => {
   it("shows free 2/3 usage, duration and row destinations", async () => {
     await createTimers(2);
     render(<TimerList />);
-    expect(await screen.findByRole("button", { name: /새 타이머.*2\/3/ })).toBeEnabled();
+    const create = await screen.findByRole("button", { name: /새 타이머.*2\/3/ });
+    expect(create).toBeEnabled();
+    expect(create).toHaveClass("btn-secondary");
+    expect(create).not.toHaveClass("btn-primary");
     expect(screen.getByText("무료")).toBeInTheDocument();
     const row = screen.getByText("발표 0").closest("li")!;
     const timers = await api.listTimers();
     if (!timers.ok) throw new Error();
     expect(within(row).getByText("1구간 · 합계 1:05")).toBeInTheDocument();
+    expect(row.querySelectorAll("[data-block]")).toHaveLength(1);
+    expect(within(row).getByRole("link", { name: "시작" })).toHaveClass("btn-primary");
     for (const [name, suffix] of [["시작", "/run"], ["편집", ""], ["기록", "/records"]]) {
       expect(within(row).getByRole("link", { name })).toHaveAttribute("href", `/timers/${timers.data[0].id}${suffix}`);
     }
@@ -81,9 +86,13 @@ describe("TimerList", () => {
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/"));
   });
 
-  it("reports a failed read", async () => {
+  it("reports a failed read and reads again on retry", async () => {
     vi.spyOn(api, "listTimers").mockRejectedValueOnce(new Error());
+    const user = userEvent.setup();
     render(<TimerList />);
     expect(await screen.findByRole("alert")).toHaveTextContent(MESSAGES.appError.title);
+    await user.click(screen.getByRole("button", { name: MESSAGES.appError.retry }));
+    expect(await screen.findByText("첫 타이머를 만들어 보세요")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

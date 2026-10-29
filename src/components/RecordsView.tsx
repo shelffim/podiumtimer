@@ -14,7 +14,7 @@ import { AverageTable } from "./AverageTable";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Icon } from "./Icon";
 import { ResultTable } from "./ResultTable";
-import { verdictColor } from "./verdictColor";
+import { verdictTone } from "./verdictColor";
 
 const copy = MESSAGES.records;
 
@@ -120,7 +120,7 @@ export function RecordsView({ timerId }: { timerId: string }) {
                       <time id={`${id}-date`} dateTime={new Date(record.startedAt).toISOString()} className="label tabular-nums">{recordDateLabel(record.startedAt)}</time>
                       <span id={`${id}-totals`} className="caption tabular-nums">{recordTotalsLabel(totals.actualMs, totals.plannedMs)}</span>
                     </span>
-                    <span id={`${id}-diff`} className={`text-sm tabular-nums ${verdictColor[totals.verdict]}`}>{diffLabel(totals.diffMs)}</span>
+                    <span id={`${id}-diff`} className={`verdict tabular-nums ${verdictTone[totals.verdict]}`}>{diffLabel(totals.diffMs)}</span>
                     <Icon name={isOpen ? "chevron-up" : "chevron-down"} size={18} className="text-soft" />
                   </button>
                   {isOpen && <div id={`${id}-result`} className="flex flex-col gap-2 px-5 pb-4">

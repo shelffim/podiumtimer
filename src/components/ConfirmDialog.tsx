@@ -26,7 +26,7 @@ export function ConfirmDialog({ title, description, confirmLabel, onConfirm, onC
   return (
     <div data-no-advance className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-5">
       <div role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={description ? `${id}-description` : undefined}
-        className="flex w-full max-w-[360px] flex-col gap-5 rounded-3xl bg-card p-6">
+        className="card w-full max-w-[360px] gap-5 p-6">
         <div className="flex flex-col gap-2">
           <h2 id={`${id}-title`} className="heading">{title}</h2>
           {description && <p id={`${id}-description`} className="text-sm text-soft">{description}</p>}

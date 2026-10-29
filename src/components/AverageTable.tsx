@@ -20,7 +20,7 @@ export function AverageTable({ rows }: { rows: AverageRow[] }) {
             <td>{row.name}</td>
             <td className="tabular-nums text-soft">{formatDuration(row.plannedMs)}</td>
             <td className="tabular-nums">{formatDuration(row.actualMs)}</td>
-            <td className={`tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</td>
+            <td className={`font-semibold tabular-nums ${verdictColor[row.verdict]}`}>{diffLabel(row.diffMs)}</td>
           </tr>
         ))}
       </tbody>

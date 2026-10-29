@@ -35,6 +35,7 @@ describe("PricingView", () => {
     expect(screen.getByRole("heading", { name: MESSAGES.pricing.headline })).toBeInTheDocument();
     const free = screen.getByRole("region", { name: "무료" });
     const pass = screen.getByRole("region", { name: "30일권" });
+    expect(screen.getAllByRole("region")).toEqual([pass, free]);
     expect(within(free).getByText("$0")).toBeInTheDocument();
     expect(within(free).getAllByRole("listitem").map((item) => item.textContent)).toEqual([...MESSAGES.pricing.freeFeatures]);
     expect(within(free).getAllByRole("listitem")[0]).toHaveTextContent(`타이머 ${LIMITS.free.timers}개`);

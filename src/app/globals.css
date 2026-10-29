@@ -10,6 +10,14 @@
   --color-ink: #0a0b0d;
 }
 
+:root {
+  /* MOCK 배지가 있을 때만 아래 고정 요소가 그만큼 비켜 서요. */
+  --badge-space: 0px;
+}
+body:has([data-mock-badge]) {
+  --badge-space: 3rem;
+}
+
 html,
 body {
   background: var(--color-surface);
@@ -62,6 +70,11 @@ body {
   .btn-text {
     @apply focus-ring inline-flex min-h-11 items-center rounded-md text-base font-semibold text-soft transition-colors duration-150 hover:text-white disabled:text-muted;
   }
+  /* 카드 안의 Secondary는 바탕이 카드와 같아 글자처럼 보이므로 한 단계 밝은 fill을 깔아요.
+     비활성일 때는 muted 글자가 fill 위에서 대비가 모자라(4.1) 카드 바탕으로 둬요. */
+  .card .btn-secondary {
+    @apply bg-fill hover:bg-line disabled:bg-card disabled:hover:bg-card;
+  }
   .icon-btn {
     @apply focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-fill text-white transition-colors duration-150 hover:bg-line disabled:text-[#4a4f57] disabled:hover:bg-fill;
   }
@@ -74,6 +87,12 @@ body {
   }
   .plate {
     @apply inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-fill text-white;
+  }
+  .verdict {
+    @apply inline-flex h-7 items-center rounded-full px-2.5 text-sm leading-none font-semibold whitespace-nowrap;
+  }
+  .verdict-lg {
+    @apply h-9 px-3.5 text-lg md:h-10 md:px-4 md:text-xl;
   }
   .notice {
     @apply flex flex-wrap items-center gap-3 rounded-2xl bg-fill p-4;

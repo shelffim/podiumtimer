@@ -5,6 +5,9 @@ import { formatDuration, verdictOf } from "./timer";
 
 export const MESSAGES = {
   serviceName: "Podium Timer",
+  meta: {
+    description: "발표·토론을 구간으로 나눠, 구간마다 계획보다 빨랐는지 늦었는지 보여주는 타이머예요",
+  },
   mockBadge: "MOCK 모드 · 데이터는 이 브라우저에만 저장돼요",
   common: {
     back: "뒤로",
@@ -84,6 +87,7 @@ export const MESSAGES = {
     tapHint: "화면 아무 곳이나 탭하면 다음 구간",
     next: "다음",
     finish: "종료",
+    averageTeaser: "한 번 더 하면 구간별 평균을 볼 수 있어요",
     keyHint: "또는",
     spaceKey: "Space",
   },
@@ -115,6 +119,8 @@ export const MESSAGES = {
     notFoundHint: "링크 주소를 다시 확인해 주세요",
     fullHint: "자리가 비면 링크를 다시 열어 주세요",
     aborted: "발표가 중단되었어요",
+    abortedHint: "발표자가 다시 시작하면 새 링크로 들어와 주세요",
+    finishedHint: "다음 발표는 발표자가 보내는 새 링크로 볼 수 있어요",
     disconnected: "연결 끊김",
   },
   timerFace: {

@@ -55,8 +55,10 @@ export const recordInputSchema = z.object({
   }, { error: copy.invalidInput }), { error: copy.invalidInput }).min(1, { error: copy.recordSegmentsRequired }),
 }, { error: copy.invalidInput });
 
+// 숫자만 적으면 분으로 읽어요(`3` → 3:00). 폰 키보드에서 `:`를 치지 않아도 되게 하려는 거예요.
 export function parseClock(text: string): number | null {
   const trimmed = text.trim();
+  if (/^\d+$/.test(trimmed)) return Number(trimmed) * 60;
   if (!/^\d+:[0-5]\d$/.test(trimmed)) return null;
   const [minutes, seconds] = trimmed.split(":").map(Number);
   return minutes * 60 + seconds;

@@ -23,7 +23,7 @@ export function ResultTable({ results }: { results: SegmentResult[] }) {
             <td>{result.name}</td>
             <td className="tabular-nums text-soft">{formatDuration(result.plannedMs)}</td>
             <td className="tabular-nums">{formatDuration(result.actualMs)}</td>
-            <td className={`tabular-nums ${verdictColor[result.verdict]}`}>{diffLabel(result.diffMs)}</td>
+            <td className={`font-semibold tabular-nums ${verdictColor[result.verdict]}`}>{diffLabel(result.diffMs)}</td>
           </tr>
         ))}
         {results.length > 0 && (

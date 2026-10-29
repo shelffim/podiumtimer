@@ -57,13 +57,29 @@ describe("TimerEditor", () => {
     expect(screen.queryByText("저장했어요")).not.toBeInTheDocument();
   });
 
-  it.each(["300", "3:60", ""])("shows a field format error for %s", async (clock) => {
+  it.each(["3.5", "3:60", ""])("shows a field format error for %s", async (clock) => {
     if (clock) await newForm(clock);
     else { render(<TimerEditor />); await screen.findByLabelText("타이머 이름"); }
     await save();
     expect(screen.getByText(MESSAGES.validation.clockFormat)).toBeInTheDocument();
     expect(screen.getByLabelText("구간 1 시간")).toHaveAccessibleDescription(MESSAGES.validation.clockFormat);
     expect((await api.listTimers())).toEqual({ ok: true, data: [] });
+  });
+
+  it("reads bare digits as minutes and shows them as m:ss after leaving the field", async () => {
+    const user = await newForm("3");
+    await user.tab();
+    expect(screen.getByLabelText("구간 1 시간")).toHaveValue("3:00");
+    await user.clear(screen.getByLabelText("구간 1 시간"));
+    await user.type(screen.getByLabelText("구간 1 시간"), "abc");
+    await user.tab();
+    expect(screen.getByLabelText("구간 1 시간")).toHaveValue("abc");
+    await user.clear(screen.getByLabelText("구간 1 시간"));
+    await user.type(screen.getByLabelText("구간 1 시간"), "2");
+    await save();
+    const result = await api.listTimers();
+    if (!result.ok) throw new Error();
+    expect(result.data[0].segments[0].durationSec).toBe(120);
   });
 
   it("shows a range error for a four second segment", async () => {

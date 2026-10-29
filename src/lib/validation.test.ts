@@ -89,8 +89,12 @@ describe("localRunSchema", () => {
 });
 
 describe("parseClock", () => {
-  it.each([["3:00", 180], [" 125:00 ", 7_500], ["0:04", 4], ["0:00", 0], ["180:01", 10_801], ["3:0", null], ["180", null], ["3:60", null], ["-3:00", null], ["3.5:00", null], ["3:00\n4:00", null], ["", null]])(
+  it.each([["3:00", 180], [" 125:00 ", 7_500], ["0:04", 4], ["0:00", 0], ["180:01", 10_801], ["3:0", null], ["3:60", null], ["-3:00", null], ["3.5:00", null], ["3:00\n4:00", null], ["", null]])(
     "parses %s as %s without checking the duration range", (text, expected) => expect(parseClock(text)).toBe(expected),
+  );
+
+  it.each([["3", 180], [" 5 ", 300], ["180", 10_800], ["181", 10_860], ["0", 0], ["-3", null], ["3.5", null], ["3 0", null]])(
+    "reads bare digits %s as whole minutes (%s seconds)", (text, expected) => expect(parseClock(text)).toBe(expected),
   );
 });
 

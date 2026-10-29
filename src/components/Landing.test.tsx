@@ -51,9 +51,13 @@ describe("Landing", () => {
     expect(screen.getByRole("link", { name: MESSAGES.serviceName })).toHaveAttribute("href", "/");
     expect(screen.getByRole("heading", { level: 1, name: MESSAGES.landing.headline })).toBeInTheDocument();
     expect(screen.getByText(MESSAGES.landing.description)).toBeInTheDocument();
-    expect(screen.getByText(/만 14세 이상 · 계속하면/)).toBeInTheDocument();
-    expect(screen.getByText("1:24").closest("[aria-hidden]")).not.toBeNull();
-    expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400");
+    expect(screen.getByText(/^무료 · 만 14세 이상 · 계속하면/)).toBeInTheDocument();
+    const preview = screen.getByText("1:24").closest("[aria-hidden]")!;
+    expect(preview).not.toBeNull();
+    expect(screen.getByText("0:12 늦음")).toHaveClass("text-red-400", "verdict");
+    expect(preview).toHaveTextContent("3 / 6");
+    expect(preview).toHaveTextContent("직전 구간 · 문제 정의");
+    expect(preview).toHaveTextContent("전체 남은 시간7:12");
     for (const feature of MESSAGES.landing.features) {
       expect(screen.getByRole("heading", { name: feature.title })).toBeInTheDocument();
       expect(screen.getByText(feature.body)).toBeInTheDocument();
