@@ -1,7 +1,7 @@
 import type { ErrorCode, Plan } from "@/types/api";
 import type { Verdict } from "@/types/timer";
 import { LIMITS, PASS_DAYS, PASS_PRICE_USD } from "./billing";
-import { formatDuration, verdictOf } from "./timer";
+import { formatClock, formatDuration, verdictOf } from "./timer";
 
 export const MESSAGES = {
   serviceName: "Podium Timer",
@@ -16,6 +16,21 @@ export const MESSAGES = {
   },
   landing: {
     headline: "구간마다, 계획보다 빨랐는지 늦었는지.",
+    headlineParts: ["구간마다, 계획보다", "빨랐는지", "늦었는지."],
+    comparison: {
+      title: "남은 시간만 보면, 끝나고 나서야 알아요.",
+      description: "같은 10분 발표라도 타이머에 따라 보이는 게 달라요. 보통 타이머는 전체 시간이 넘쳤다는 것만 알려주고, Podium Timer는 어느 구간에서 늦고 빨랐는지 구간마다 남겨요.",
+      standardName: "보통 타이머",
+      standardCaption: "전체 남은 시간 하나",
+      podiumCaption: "구간마다 판정",
+    },
+    overtimeNote: (seconds: number) => `끝나고 나서야 ${seconds}초 넘친 걸 알아요. 어느 구간 때문인지는 몰라요.`,
+    lateSegmentsNote: (segments: { name: string; diffMs: number }[]) =>
+      `${segments.map((segment) => `${segment.name}에서 ${formatClock(segment.diffMs)}`).join(", ")} 늦었어요. 다음 연습에서 어디를 줄일지 바로 보여요.`,
+    featuresTitle: "혼자 리허설부터 토론 수업까지.",
+    inProgress: "진행 중",
+    viewerNames: ["민지", "준호"],
+    closingTitle: "이번 리허설부터 구간마다 확인해 보세요.",
     description: "발표와 토론을 구간으로 나눠 두면, 구간을 넘길 때마다 계획 대비 차이를 바로 보여줘요. 링크로 공유하면 여러 명이 같은 타이머를 봐요.",
     mockSignIn: "체험 계정으로 시작하기",
     googleSignIn: "Google로 시작하기",

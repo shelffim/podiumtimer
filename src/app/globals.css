@@ -54,7 +54,10 @@ body {
     @apply text-[32px] leading-[1.13] font-normal tracking-[-0.4px] break-words break-keep text-white;
   }
   .hero {
-    @apply text-4xl leading-[1.11] font-normal tracking-[-0.5px] text-balance break-keep text-white md:text-[52px] md:leading-none md:tracking-[-1.3px];
+    @apply text-4xl leading-[1.11] font-normal tracking-[-0.5px] text-balance break-keep text-white md:text-[52px] md:leading-none md:tracking-[-1.3px] xl:text-[68px];
+  }
+  .display {
+    @apply text-[28px] leading-[1.15] font-normal tracking-[-0.6px] text-balance break-keep text-white md:text-[36px] lg:text-[44px];
   }
   .heading {
     @apply text-lg leading-[1.33] font-semibold break-words break-keep text-white;
