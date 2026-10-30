@@ -105,8 +105,9 @@ describe("mock data", () => {
     expect(await mockApi.createTimer({ ...input, name: " " })).toEqual(failure("INVALID_INPUT"));
     const timer = data(await mockApi.createTimer(input));
     expect(await mockApi.updateTimer(timer.id, { ...input, segments: [{ ...input.segments[0], durationSec: 4 }] })).toEqual(failure("INVALID_INPUT"));
+    expect(await mockApi.updateTimer(timer.id, { ...input, segments: [] })).toEqual(failure("INVALID_INPUT"));
     expect(data(await mockApi.getTimer(timer.id))).toEqual(timer);
-    data(await mockApi.createTimer({ ...input, segments: [] }));
+    expect(await mockApi.createTimer({ ...input, segments: [] })).toEqual(failure("INVALID_INPUT"));
   });
 
   it("returns NOT_FOUND for missing timers, records, and shares before validating input", async () => {
@@ -170,7 +171,7 @@ describe("mock data", () => {
     expect(first.code).not.toBe(timer.id);
     expect(random).toHaveBeenCalledWith(expect.any(Uint8Array));
     expect((random.mock.calls[0][0] as Uint8Array).byteLength).toBe(16);
-    await mockApi.updateTimer(timer.id, { ...input, name: "수정", segments: [] });
+    data(await mockApi.updateTimer(timer.id, { name: "수정", segments: [{ ...input.segments[0], name: "수정", durationSec: 120 }] }));
     await mockApi.signOut();
     const share = data(await mockApi.getShare(first.code));
     expect(share).toEqual({ timerName: timer.name, segments: timer.segments, seatCap: 3, state: createIdleRun(), rev: 0 });

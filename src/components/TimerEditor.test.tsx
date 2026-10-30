@@ -195,14 +195,17 @@ describe("TimerEditor", () => {
     }
   });
 
-  it("allows saving zero segments", async () => {
+  it("does not save zero segments", async () => {
     const timer = await seed();
+    const update = vi.spyOn(api, "updateTimer");
     const user = userEvent.setup();
     render(<TimerEditor timerId={timer.id} />);
     await screen.findByDisplayValue("수업 발표");
     await user.click(screen.getByRole("button", { name: "구간 1 삭제" }));
     await save();
-    expect(await api.getTimer(timer.id)).toEqual({ ok: true, data: { ...timer, segments: [] } });
+    expect(screen.getByText("구간을 1개 이상 추가해 주세요")).toBeInTheDocument();
+    expect(update).not.toHaveBeenCalled();
+    expect(screen.queryByText("저장했어요")).not.toBeInTheDocument();
   });
 
   it("keeps the timer when delete confirmation is canceled", async () => {
